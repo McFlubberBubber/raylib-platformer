@@ -1,0 +1,5 @@
+=========
+TODO LIST
+=========
+
+This todo file is currently empty (becuase I just started the project). The purpose of the docs folder is for inserting images in here for documentation purposes, that way I can make the README.md look pretty nice, along with just having a todo list as reference for what features I should add into the project!  -nathan, 25th Jan, 2025 

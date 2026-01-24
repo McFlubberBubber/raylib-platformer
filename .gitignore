@@ -9,6 +9,13 @@ cmake-build-*/
 *.user
 *.suo
 
+# Emacs stuff - supplied via an LLM because I am too lazy...
+*~           # Backup files (file.cpp~)
+\#*\#        # Autosave files (#file.cpp#)
+.\#*         # Lock files (.#file.cpp)
+*.elc        # Compiled Emacs Lisp
+.dir-locals.el  # Directory-local variables (if you don't want to commit)
+
 # OS files
 .DS_Store
 Thumbs.db

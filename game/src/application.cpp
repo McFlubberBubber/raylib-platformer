@@ -2,19 +2,23 @@
 
 #include "raylib.h"
 
-void Application::init() {
-	InitWindow(width, height, title);
-	SetTargetFPS(target_fps);
+#include "platformer.h"
+
+void init_app(Application *app) {
+	InitWindow(app->width, app->height, app->title);
+	SetTargetFPS(app->target_fps);
+	SetExitKey(KEY_Q);
 	return;
 }
 
-void Application::update() {
+void update_app(Application *app) {
 	BeginDrawing();
-	ClearBackground(BLACK);
-	DrawText("This is the new application struct showing this off!", 200, 200, 20, RAYWHITE);
+	
+	draw_game(&app->game);
+	
 	EndDrawing();
 }
 
-void Application::shutdown() {
+void shutdown_app(Application *app) {
 	CloseWindow();
 }

@@ -12,13 +12,13 @@
 #include "application.h"
 
 int main() {
-	Application app = { 0 };
-	app.init();
+	Application app;
+	init_app(&app);
 
 	while (!WindowShouldClose()) {
-		app.update();
+		update_app(&app);
 	}
 
-	app.shutdown();
+	shutdown_app(&app);
 	return 0;
 }

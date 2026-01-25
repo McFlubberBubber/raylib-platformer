@@ -1,5 +1,7 @@
 #pragma once
 
+#include "platformer.h"
+
 struct Application {
 	const char *title = "Platformer";
 	int target_fps = 60;
@@ -7,8 +9,10 @@ struct Application {
 	int width  = 1280;
 	int height = 720;
 
-	void init();
-	void update();
-	void shutdown();
+	// Game-specific stuff.
+	Game game;
 };
 
+void init_app(Application *app);
+void update_app(Application *app);
+void shutdown_app(Application *app);

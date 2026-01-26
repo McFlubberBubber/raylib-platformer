@@ -1,25 +1,19 @@
 #include "platformer.h"
-
 #include "raylib.h"
+// #include "player.h"
+
 #include <stdio.h> // For printing stuff. 
 
-static void cycle_menu_item(GameMainMenu* menu, bool do_increment) {
+static void process_opening_menu_inputs(Game* game) {
+	auto menu = &game->main_menu;
 	int current_item = static_cast<int>(menu->current_menu_item);
 	int total_items  = static_cast<int>(MENU_COUNT);
 
-	if (do_increment) {
+	if (IsKeyPressed(KEY_DOWN)) {
 		menu->current_menu_item = static_cast<MainMenuItems>((current_item + 1) % total_items);
-	} else {
+	} else if (IsKeyPressed(KEY_UP)) {
 		int prev_item = (current_item - 1 + total_items) % total_items;
 		menu->current_menu_item = static_cast<MainMenuItems>(prev_item);
-	}
-}
-
-static void process_opening_menu_inputs(Game* game) {
-	if (IsKeyPressed(KEY_DOWN)) {
-		cycle_menu_item(&game->main_menu, true);
-	} else if (IsKeyPressed(KEY_UP)) {
-		cycle_menu_item(&game->main_menu, false);
 	}
 
 	if (IsKeyPressed(KEY_ENTER)) {
@@ -30,6 +24,10 @@ static void process_opening_menu_inputs(Game* game) {
 		}
 		case MENU_SETTINGS: {
 			printf("Settings page not implemented yet.\n");
+			break;
+		}
+		case MENU_CONTROLS: {
+			printf("Controls page not implemented yet.\n");
 			break;
 		}
 		case MENU_EXIT: {
@@ -62,14 +60,14 @@ static void draw_opening_menu(Game *game) {
 	DrawText(title, x, y, title_font_size, RAYWHITE);
 
 	// Drawing main menu options.
-	const char *button_text[] = { "START", "SETTINGS", "QUIT" };
+	const char *button_text[] = { "START", "SETTINGS", "CONTROLS", "QUIT" };
 	const int menu_font_size = 32;
 	Rectangle button_rect;
 	button_rect.width  = 400;
 	button_rect.height = 50;
 	button_rect.x = center_x - (button_rect.width / 2);
 
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 4; ++i) {
 		int button_gap = (100 * (i + 1));
 		button_rect.y = y + button_gap;
 
@@ -100,9 +98,20 @@ static void draw_opening_menu(Game *game) {
 
 static void draw_game_world(Game *game) {
 	ClearBackground(BLACK);
+
+	draw_player(&game->player);
+	
 	DrawText("This is the game world!", 200, 200, 20, RAYWHITE);
 	DrawText("Press Q to quit the game since nothing is here yet.", 200, 240, 20, RAYWHITE);	
 }
+
+void init_game(Game *game) {
+	init_player(&game->player);
+}
+
+void update_game(Game *game) {
+	update_player(&game->player);
+};
 
 void draw_game(Game *game) {
 	DrawFPS(0, 0);
@@ -118,6 +127,10 @@ void draw_game(Game *game) {
 	}
 	case GAME_WORLD: {
 		draw_game_world(game);
+		break;
+	}
+	case GAME_EDITOR: {
+		// @TODO: Handle editor stuff...
 		break;
 	}
 	default: {

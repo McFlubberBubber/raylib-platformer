@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a repoitory that uses raylib to create a 2D platformer game (maybe). You can find out more about raylib [here](https://github.com/raysan5/raylib) if you are interested! This project is compiled with **C++17** and finally uses **CMake** to build the project!
+This is a repository that uses raylib to create a 2D platformer game (maybe). You can find out more about raylib [here](https://github.com/raysan5/raylib) if you are interested! This project is compiled with **C++17** and finally uses **CMake** to build the project!
 
 ## Installation
 

@@ -2,4 +2,12 @@
 TODO LIST
 =========
 
-This todo file is currently empty (becuase I just started the project). The purpose of the docs folder is for inserting images in here for documentation purposes, that way I can make the README.md look pretty nice, along with just having a todo list as reference for what features I should add into the project!  -nathan, 25th Jan, 2025 
+- Always refactor for better architecture, but also get things working first.
+
+- Title the game properly, complete missing main menu features.
+- Figure out how to make opening menu + pause menu work with eachother. 
+
+- Get some asset loading system to prepare for importing of character sprites / monster sprites / tiles, etc. (just make it work so we can put placeholders in).
+
+- Get some sort of world drawn in-game that we can navigate in.
+- Figure out collisions with the player and the environment to allow for actual platforming.

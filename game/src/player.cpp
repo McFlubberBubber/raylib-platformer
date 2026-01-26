@@ -6,9 +6,8 @@
 #include <stdio.h>
 
 void init_player(Player *player) {
-	int center_x = GetScreenWidth()  / 2;
-	int ground_y = GetScreenHeight() / 2;
-	
+	int center_x = GetScreenWidth() / 2;
+	float ground_y = GetScreenHeight() * 0.7f; // @Temp
 	player->pos.x = center_x;
 	player->pos.y = ground_y;
 
@@ -23,15 +22,12 @@ void init_player(Player *player) {
 	player->current_velocity = 0.0f;
 }
 
-// @TODO: Since we introduced this whole player state thing, we need to make sure that we handle
-// cases in different scenarios. Also should we consider deltatime in here?
 void update_player(Player *player) {
 	float dt = GetFrameTime();
 	constexpr float gravity        =  980.0f;  // Positive to move down
 	constexpr float jump_force     = -400.0f;  // Negative to move upwards
 	constexpr float movement_speed =  300.0f;  // Pixels per sec.
-	
-	float ground_y = GetScreenHeight() / 2; // @Temp: just for testing.
+	float ground_y = GetScreenHeight() * 0.7f; // @Temp
 	
 	float horizontal = 0.0f;
 	if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))  horizontal = -1.0f;
@@ -47,7 +43,7 @@ void update_player(Player *player) {
 		player->current_velocity += gravity * dt;
 	}
 
-	player->pos.y   += player->current_velocity * dt;
+	player->pos.y += player->current_velocity * dt;
 
 	// @Temp: Collision check but it's not really there.
 	if (player->pos.y >= ground_y) {
@@ -63,7 +59,6 @@ void update_player(Player *player) {
 		if (player->current_velocity < 0.0f) player->state = PLAYER_JUMPING;
 		else							     player->state = PLAYER_FALLING;
 	}
-
 
 	// @Temp: making sure the player's rect doesn't go outside the screen space.
 	const int left_wall  = 0;

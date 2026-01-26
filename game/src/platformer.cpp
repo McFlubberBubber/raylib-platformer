@@ -100,6 +100,7 @@ static void draw_game_world(Game *game) {
 	ClearBackground(BLACK);
 
 	draw_player(&game->player);
+
 	
 	DrawText("This is the game world!", 200, 200, 20, RAYWHITE);
 	DrawText("Press Q to quit the game since nothing is here yet.", 200, 240, 20, RAYWHITE);	
@@ -110,7 +111,9 @@ void init_game(Game *game) {
 }
 
 void update_game(Game *game) {
-	update_player(&game->player);
+	if (game->state == GAME_WORLD)
+		update_player(&game->player);
+	
 };
 
 void draw_game(Game *game) {

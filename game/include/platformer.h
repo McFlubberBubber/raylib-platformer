@@ -13,6 +13,14 @@ enum GameState {
 	GAME_COUNT
 };
 
+enum MenuPages {
+	PAGE_MAIN = 0,
+	PAGE_SETTINGS,
+	PAGE_CONTROLS,
+
+	PAGE_COUNT
+};
+
 enum MainMenuItems {
 	MENU_START = 0,
 	MENU_SETTINGS,
@@ -25,6 +33,7 @@ enum MainMenuItems {
 
 struct GameMainMenu {
 	MainMenuItems current_menu_item = MENU_START; 
+	MenuPages current_page = PAGE_MAIN;
 };
 
 struct Game {

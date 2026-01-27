@@ -11,9 +11,14 @@ TODO LIST
   tiles, etc. (just make it work so we can put placeholders in).
 - Once we get that sorted, find a good font to use throughout (should probably align with the
   artstyle-vision-thing we have for the game).
+- If we do get a sense of direction for the artstyle, we can figure out what to do for the actual
+  character sprites, tile map sprites, along with particle systems!
 
-- Get some sort of world drawn in-game that we can navigate in.
-- Figure out collisions with the player and the environment to allow for actual platforming.
+- Think about ways to improve collision detection rather than iterating through the entire array
+  of tiles when in the game world. Maybe even switch to raycasting from the player to prevent
+  flickering of states in the debug overlay.
+- Figure out the camera system, maybe some levels want a fixed camera, some may want to scroll with
+  the player, possibly figure out some smooth transitions between "screens" (like Celeste). 
 
 - Think about how the world editor would work (I had an idea of making it similiar to the
   geometry dash editor, but minus all the triggers, but we could do something like that!).

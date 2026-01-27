@@ -1,8 +1,5 @@
 #include "player.h"
 
-#include "raylib.h"
-// #include "raymath.h"
-
 #include <stdio.h>
 
 void init_player(Player *player) {

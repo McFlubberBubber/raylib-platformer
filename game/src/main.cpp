@@ -5,7 +5,7 @@
 	and allow us to get to programming an actual "game" instead of worrying about the whole game
 	engine / renderer aspect of it. So let's see how it goes!
 
-	This project started on the 25th January, 2025 - Nathaniel Fernandes / McFlubberBubber
+	This project started on the 25th January, 2026 - Nathaniel Fernandes / McFlubberBubber
 */
 
 #include "raylib.h"

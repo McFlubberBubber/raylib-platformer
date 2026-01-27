@@ -7,7 +7,18 @@ TODO LIST
 - Title the game properly, complete missing main menu features.
 - Figure out how to make opening menu + pause menu work with eachother. 
 
-- Get some asset loading system to prepare for importing of character sprites / monster sprites / tiles, etc. (just make it work so we can put placeholders in).
+- Get some asset loading system to prepare for importing of character sprites / monster sprites /
+  tiles, etc. (just make it work so we can put placeholders in).
+- Once we get that sorted, find a good font to use throughout (should probably align with the
+  artstyle-vision-thing we have for the game).
 
 - Get some sort of world drawn in-game that we can navigate in.
 - Figure out collisions with the player and the environment to allow for actual platforming.
+
+- Think about how the world editor would work (I had an idea of making it similiar to the
+  geometry dash editor, but minus all the triggers, but we could do something like that!).
+- Figure out some way we can store the world data to represent it within the game. That way we
+  have save the "levels" in some file format somewhere in the game's data folder, and read from that.
+
+- We can get our hotloader functionality put into the game, along with some configuration file
+  that gets read from / written to to save user config options.

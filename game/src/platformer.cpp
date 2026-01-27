@@ -1,6 +1,5 @@
 #include "platformer.h"
 #include "raylib.h"
-// #include "player.h"
 
 #include <stdio.h> // For printing stuff. 
 
@@ -101,7 +100,6 @@ static void draw_game_world(Game *game) {
 
 	draw_player(&game->player);
 
-	
 	DrawText("This is the game world!", 200, 200, 20, RAYWHITE);
 	DrawText("Press Q to quit the game since nothing is here yet.", 200, 240, 20, RAYWHITE);	
 }
@@ -111,9 +109,10 @@ void init_game(Game *game) {
 }
 
 void update_game(Game *game) {
-	if (game->state == GAME_WORLD)
+	if (game->state == GAME_WORLD) {
+		update_world(&game->world);
 		update_player(&game->player);
-	
+	}
 };
 
 void draw_game(Game *game) {

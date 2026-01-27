@@ -1,6 +1,7 @@
 #ifndef PLATFORMER_H
 #define PLATFORMER_H
 
+#include "world.h"
 #include "player.h"
 
 enum GameState {
@@ -30,16 +31,18 @@ enum MainMenuItems {
 	MENU_COUNT
 };
 
-
 struct GameMainMenu {
 	MainMenuItems current_menu_item = MENU_START; 
 	MenuPages current_page = PAGE_MAIN;
 };
 
 struct Game {
+	// Menu / UI things.
 	GameState state = GAME_OPENING_MENU;
 	GameMainMenu main_menu;
 
+	// In-game stuff.
+	World world;
 	Player player;
 };
 

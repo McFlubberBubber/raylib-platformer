@@ -1,8 +1,11 @@
-#pragma once
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
 #include "platformer.h"
 
 struct Application {
+	static Application *instance; // Singleton stuff. 
+	
 	const char *title = "Platformer";
 	int target_fps = 60;
 
@@ -16,3 +19,5 @@ struct Application {
 void init_app(Application *app);
 void update_app(Application *app);
 void shutdown_app(Application *app);
+
+#endif

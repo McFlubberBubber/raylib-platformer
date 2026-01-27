@@ -95,9 +95,10 @@ static void draw_opening_menu(Game *game) {
 	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
 }
 
-static void draw_game_world(Game *game) {
+static void draw_game_environment(Game *game) {
 	ClearBackground(BLACK);
 
+	draw_world(&game->world);
 	draw_player(&game->player);
 
 	DrawText("This is the game world!", 200, 200, 20, RAYWHITE);
@@ -105,13 +106,15 @@ static void draw_game_world(Game *game) {
 }
 
 void init_game(Game *game) {
+	init_world(&game->world);
 	init_player(&game->player);
 }
 
 void update_game(Game *game) {
 	if (game->state == GAME_WORLD) {
+		if (IsKeyPressed(KEY_R)) reset_game_state(game);
 		update_world(&game->world);
-		update_player(&game->player);
+		update_player(&game->player, &game->world);
 	}
 };
 
@@ -128,7 +131,7 @@ void draw_game(Game *game) {
 		break;
 	}
 	case GAME_WORLD: {
-		draw_game_world(game);
+		draw_game_environment(game);
 		break;
 	}
 	case GAME_EDITOR: {
@@ -140,4 +143,9 @@ void draw_game(Game *game) {
 	}
 		
 	}
+}
+
+// @Dev
+void reset_game_state(Game *game) {
+	init_game(game);
 }

@@ -16,6 +16,7 @@ struct World {
 
 void init_world(World *world);
 void update_world(World *world);
+void draw_world(World *world);
 void cleanup_world(World *world);
 
 #endif

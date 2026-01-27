@@ -9,7 +9,7 @@ enum GameState {
 	GAME_MENU,
 	GAME_WORLD,
 
-	GAME_EDITOR, // Developer mode only.
+	GAME_EDITOR, // @Dev
 
 	GAME_COUNT
 };
@@ -49,5 +49,8 @@ struct Game {
 void init_game(Game *game);
 void update_game(Game *game);
 void draw_game(Game *game);
+
+// @Dev: This is just for resetting the game to the first state by re-initting states.
+void reset_game_state(Game *game);
 
 #endif

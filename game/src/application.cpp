@@ -4,7 +4,11 @@
 
 #include "platformer.h"
 
+Application *Application::instance = nullptr;
+
 void init_app(Application *app) {
+	Application::instance = app;
+
 	InitWindow(app->width, app->height, app->title);
 	SetTargetFPS(app->target_fps);
 	SetExitKey(KEY_Q);
@@ -24,5 +28,6 @@ void update_app(Application *app) {
 }
 
 void shutdown_app(Application *app) {
+	Application::instance = nullptr;
 	CloseWindow();
 }

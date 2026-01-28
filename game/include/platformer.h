@@ -1,6 +1,7 @@
 #ifndef PLATFORMER_H
 #define PLATFORMER_H
 
+#include "raylib.h"
 #include "world.h"
 #include "player.h"
 
@@ -44,6 +45,7 @@ struct Game {
 	// In-game stuff.
 	World world;
 	Player player;
+	Camera2D camera;
 };
 
 void init_game(Game *game);

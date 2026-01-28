@@ -14,12 +14,12 @@ void init_app(Application *app) {
 	SetExitKey(KEY_Q);
 
 	init_game(&app->game);
-
+	
 	return;
 }
 
 void update_app(Application *app) {
-	BeginDrawing();
+	BeginDrawing(); // @TODO: Should this be moved after we have finished running our updates?
 	
 	update_game(&app->game);
 	draw_game(&app->game);

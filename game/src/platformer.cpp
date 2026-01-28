@@ -95,17 +95,91 @@ static void draw_opening_menu(Game *game) {
 	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
 }
 
+static void draw_debug_overlay(Game *game) {
+	DrawFPS(0, 0);
+
+	auto player = &game->player;
+	constexpr int font_size = 18;
+	constexpr int text_x    = 0;
+	constexpr int text_y    = 20;
+	char state_text[64];
+	switch(player->state) {
+	case PLAYER_IDLE: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: IDLE");
+		break;
+	}
+	case PLAYER_MOVING: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: MOVING");
+		break;
+	}
+	case PLAYER_JUMPING: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: JUMPING");
+		break;
+	}
+	case PLAYER_FALLING: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: FALLING");
+		break;
+	}
+
+	default: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: ERROR");
+		break;
+	}
+	}
+	DrawText(state_text, text_x, text_y, font_size, WHITE); // (0, 0) is the top-left.
+
+	// Drawing grounded state text.
+	char grounded_text[32];
+	if (player->is_grounded) snprintf(grounded_text, sizeof(grounded_text), "PLAYER: IS GROUNDED");
+	else                     snprintf(grounded_text, sizeof(grounded_text), "PLAYER: NOT GROUNDED");
+	DrawText(grounded_text, text_x, (text_y + font_size), font_size, WHITE);
+
+	// Drawing player positions based on screen_space coords.
+	char screen_space_x[16];
+	snprintf(screen_space_x, sizeof(screen_space_x), "PLAYER_X: %2f", player->pos.x);
+	DrawText(screen_space_x, text_x, (text_y + (font_size * 2)), font_size, WHITE);
+	char screen_space_y[16];
+	snprintf(screen_space_y, sizeof(screen_space_y), "PLAYER_Y: %2f", player->pos.y);
+	DrawText(screen_space_y, text_x, (text_y + (font_size * 3)), font_size, WHITE);
+}
+
+static void update_camera(Game *game) {
+	auto &camera = game->camera;
+	auto &player = game->player;
+	camera.target.x = GetScreenWidth()  / 2;
+	camera.target.y = GetScreenHeight() / 2;
+}
+
 static void draw_game_environment(Game *game) {
 	ClearBackground(BLACK);
 
+	update_camera(game);
+
+	// Drawing actual world space stuff.
+	BeginMode2D(game->camera);
 	draw_world(&game->world);
 	draw_player(&game->player);
+	EndMode2D();
 
-	DrawText("This is the game world!", 200, 200, 20, RAYWHITE);
-	DrawText("Press Q to quit the game since nothing is here yet.", 200, 240, 20, RAYWHITE);	
+	// Drawing UI things using screen space.
+	draw_debug_overlay(game);
+}
+
+static void init_camera(Camera2D *camera) {
+	// Camera offset (displacement from target)
+	camera->target.x = 0; 
+	camera->target.y = 0;
+
+	// Camera target (rotation and zoom origin)
+    camera->offset.x = GetScreenWidth()  / 2;
+    camera->offset.y = GetScreenHeight() / 2;
+
+    camera->rotation = 0;
+    camera->zoom     = 1.0f;
 }
 
 void init_game(Game *game) {
+	init_camera(&game->camera);
 	init_world(&game->world);
 	init_player(&game->player);
 }
@@ -119,8 +193,6 @@ void update_game(Game *game) {
 };
 
 void draw_game(Game *game) {
-	DrawFPS(0, 0);
-	
 	switch(game->state) {
 	case GAME_OPENING_MENU: {
 		draw_opening_menu(game);

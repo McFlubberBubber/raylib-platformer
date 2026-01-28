@@ -2,6 +2,10 @@
 TODO LIST
 =========
 
+- @BUG: Since dragging the window around blocks the events it receives, it actually results
+		in breaking our game code as the player sometimes clips out of the screen and just
+		teleports to some random value. 
+
 - Always refactor for better architecture, but also get things working first.
 
 - Title the game properly, complete missing main menu features.

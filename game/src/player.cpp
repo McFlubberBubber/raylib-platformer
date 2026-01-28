@@ -119,49 +119,4 @@ void update_player(Player *player, World *world) {
 
 void draw_player(Player *player) {
 	DrawRectangleRec(player->sprite, RED);
-
-	// This is all just debug overlay stuff, so in release mode we can get this out.
-	constexpr int font_size = 18;
-	constexpr int text_x    = 0;
-	constexpr int text_y    = 20;
-	char state_text[64];
-	switch(player->state) {
-	case PLAYER_IDLE: {
-		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: IDLE");
-		break;
-	}
-	case PLAYER_MOVING: {
-		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: MOVING");
-		break;
-	}
-	case PLAYER_JUMPING: {
-		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: JUMPING");
-		break;
-	}
-	case PLAYER_FALLING: {
-		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: FALLING");
-		break;
-	}
-
-	default: {
-		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: ERROR");
-		break;
-	}
-	}
-	
-	DrawText(state_text, text_x, text_y, font_size, WHITE); // (0, 0) is the top-left.
-
-	// Drawing grounded state text.
-	char grounded_text[32];
-	if (player->is_grounded) snprintf(grounded_text, sizeof(grounded_text), "PLAYER: IS GROUNDED");
-	else                     snprintf(grounded_text, sizeof(grounded_text), "PLAYER: NOT GROUNDED");
-	DrawText(grounded_text, text_x, (text_y + font_size), font_size, WHITE);
-
-	// Drawing player positions based on screen_space coords.
-	char screen_space_x[16];
-	snprintf(screen_space_x, sizeof(screen_space_x), "PLAYER_X: %2f", player->pos.x);
-	DrawText(screen_space_x, text_x, (text_y + (font_size * 2)), font_size, WHITE);
-	char screen_space_y[16];
-	snprintf(screen_space_y, sizeof(screen_space_y), "PLAYER_Y: %2f", player->pos.y);
-	DrawText(screen_space_y, text_x, (text_y + (font_size * 3)), font_size, WHITE);
 }

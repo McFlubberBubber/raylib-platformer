@@ -38,20 +38,30 @@ static void check_horizontal_collisions(Player *player, World *world) {
 
 void init_player(Player *player) {
 	int center_x = GetScreenWidth() / 2;
+
+	// @TODO: This is all screen space coords, we need to change these to world space.
+#if 0 
 	player->pos.x = center_x;
 	player->pos.y = GetScreenHeight() * 0.2f; // Just drop them from the top-ish
+#else
+	player->pos.x = 0;
+	player->pos.y = 0;
+#endif
+
 	player->vel.x = 0.0f;
 	player->vel.y = 0.0f;
 
 	player->sprite.x = player->pos.x;
 	player->sprite.y = player->pos.y;
-	player->sprite.width  = 20;
-	player->sprite.height = 20;
+	player->sprite.width  = 25;
+	player->sprite.height = 25;
 
 	player->state	    = PLAYER_IDLE;
 	player->prev_state  = player->state;
 	
-	player->is_grounded = false; 
+	player->is_grounded = false;
+
+	player->health = 3;
 }
 
 // @TODO: We bundle up the player input in here, so if we want to, we can pull that out into a
@@ -66,7 +76,7 @@ void update_player(Player *player, World *world) {
 	// starts at the top, meaning if we want to jump to go up, we need to minus the screen space
 	// coords.
 #if 1
-	constexpr float gravity    =  1500.0f;
+	constexpr float gravity    =  1200.0f;
 	constexpr float jump_force = -550.0f;
 #else
 	constexpr float gravity    =  980.0f; 
@@ -74,6 +84,8 @@ void update_player(Player *player, World *world) {
 #endif
 	constexpr float movement_speed  = 300.0f;  // Pixels per sec.
 	constexpr float coyote_duration = 0.1f;    // 100ms grace.
+
+	if (player->health == 0) return;
 	
 	float horizontal = 0.0f;
 	if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))  horizontal = -1.0f;
@@ -103,17 +115,19 @@ void update_player(Player *player, World *world) {
 	player->sprite.y = player->pos.y;
 	check_vertical_collisions(player, world);
 
+	if (player->is_grounded) player->vel.y = 0.0f;
+
+	if ((player->sprite.y + player->sprite.height) >= 1000) player->health = 0;
+
 	// Handling state changes.
 	player->prev_state = player->state;
 	PlayerState new_state;
-    if (player->is_grounded) {
-        player->vel.y = 0.0f;
-		new_state = (horizontal != 0.0f) ? PLAYER_MOVING : PLAYER_IDLE;
-	} else {
-		new_state = (player->vel.y < 0.0f) ? PLAYER_JUMPING : PLAYER_FALLING;
-	}
+    
+	if (player->is_grounded) new_state = (horizontal != 0.0f)   ? PLAYER_MOVING  : PLAYER_IDLE;
+	else             		 new_state = (player->vel.y < 0.0f) ? PLAYER_JUMPING : PLAYER_FALLING;
+
+	if (player->health <= 0) new_state = PLAYER_DEAD;
 	
-	// if (new_state != player->state)
 	player->state = new_state;
 }
 

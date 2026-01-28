@@ -13,6 +13,9 @@ enum PlayerState {
 	PLAYER_JUMPING,
 	PLAYER_FALLING,
 
+	PLAYER_HURT,
+	PLAYER_DEAD,
+
 	PLAYER_STATE_COUNT
 };
 
@@ -30,6 +33,8 @@ struct Player {
 	
 	bool is_grounded; // Temp?
 	float coyote;
+
+	int health;
 };
 
 void init_player(Player *player);

@@ -102,6 +102,9 @@ static void draw_debug_overlay(Game *game) {
 	constexpr int font_size = 18;
 	constexpr int text_x    = 0;
 	constexpr int text_y    = 20;
+	const int center_x      = GetScreenWidth()  / 2;
+	const int center_y      = GetScreenHeight() / 2;
+	
 	char state_text[64];
 	switch(player->state) {
 	case PLAYER_IDLE: {
@@ -118,6 +121,14 @@ static void draw_debug_overlay(Game *game) {
 	}
 	case PLAYER_FALLING: {
 		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: FALLING");
+		break;
+	}
+	case PLAYER_HURT: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: HURT");
+		break;
+	}
+	case PLAYER_DEAD: {
+		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: DEAD");
 		break;
 	}
 
@@ -141,19 +152,26 @@ static void draw_debug_overlay(Game *game) {
 	char screen_space_y[16];
 	snprintf(screen_space_y, sizeof(screen_space_y), "PLAYER_Y: %2f", player->pos.y);
 	DrawText(screen_space_y, text_x, (text_y + (font_size * 3)), font_size, WHITE);
-}
 
-static void update_camera(Game *game) {
-	auto &camera = game->camera;
-	auto &player = game->player;
-	camera.target.x = GetScreenWidth()  / 2;
-	camera.target.y = GetScreenHeight() / 2;
+	// Drawing death screen.
+	if (player->health == 0) {
+		const char *death = "YOU ARE DEAD.";
+		int width = MeasureText(death, font_size * 2);
+		int x = center_x - (width / 2);
+		int y = center_y * 0.4f;
+		DrawText(death, x, y, (font_size * 2), RED);
+		
+		const char *reset = "Press R to respawn.";
+		width = MeasureText(reset, font_size);
+		x = center_x - (width / 2);
+		DrawText(reset, x, y + (font_size * 2), font_size, WHITE);
+	}
 }
 
 static void draw_game_environment(Game *game) {
 	ClearBackground(BLACK);
 
-	update_camera(game);
+	// update_camera(game);
 
 	// Drawing actual world space stuff.
 	BeginMode2D(game->camera);
@@ -187,7 +205,7 @@ void init_game(Game *game) {
 void update_game(Game *game) {
 	if (game->state == GAME_WORLD) {
 		if (IsKeyPressed(KEY_R)) reset_game_state(game);
-		update_world(&game->world);
+		update_world(&game->world, &game->player, &game->camera);
 		update_player(&game->player, &game->world);
 	}
 };

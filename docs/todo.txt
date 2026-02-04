@@ -4,7 +4,14 @@ TODO LIST
 
 - @BUG: Since dragging the window around blocks the events it receives, it actually results
 		in breaking our game code as the player sometimes clips out of the screen and just
-		teleports to some random value. 
+		teleports to some random value.
+		
+- @BUG: Switching menu pages with the escape key is causing some issues as the input reading leaks
+		over to the other page. For example, if we go from the in-game menu (might get renamed to
+		pause instead), to the settings page, if we then proceed to press escape to return to the
+		main page, the escape input is read from the settings -> main page, causing us to return
+		to the GAME_WORLD state, meaning we go from settings -> game world. We could do the same
+		thing of having a dedicated function that handles page switching.
 
 - Always refactor for better architecture, but also get things working first.
 

@@ -152,25 +152,6 @@ static void init_camera(Camera2D *camera) {
     camera->zoom     = 1.0f;
 }
 
-static void handle_game_state_transitions(Game *game) {
-	if (IsKeyPressed(KEY_ESCAPE)) {
-		switch (game->state) {
-		case GAME_WORLD: {
-			game->state = GAME_MENU;
-			break;
-		}
-		case GAME_MENU: {
-			game->state = GAME_WORLD;
-			break;
-		}
-
-		default: {
-			break;
-		}
-		}
-	}
-}
-
 void init_game(Game *game) {
 	init_camera(&game->camera);
 	init_world(&game->world);
@@ -186,12 +167,13 @@ void update_game(Game *game) {
 		break;
 	}
 	case GAME_MENU: {
-		if (IsKeyPressed(KEY_ESCAPE)) push_command_change_state(game, GAME_WORLD);
+		// if (IsKeyPressed(KEY_ESCAPE)) push_command_change_state(game, GAME_WORLD);
 		update_menu(&game->menu, game);
 		break;
 	}
 	case GAME_WORLD: {
-		if (IsKeyPressed(KEY_R))      push_command_simple(game, CMD_RESET_GAME);
+		if (IsKeyPressed(KEY_R)) push_command_simple(game, CMD_RESET_GAME);
+
 		if (IsKeyPressed(KEY_ESCAPE)) {
 			game->menu.current_main_item = MAIN_START;
 			push_command_change_state(game, GAME_MENU);

@@ -26,7 +26,16 @@ enum SettingsPageItems {
 	SETTINGS_FULLSCREEN = 0,
 	SETTINGS_RESOLUTION,
 
+	SETTINGS_SAVE,
+	SETTINGS_RETURN,
+
 	SETTINGS_COUNT
+};
+
+enum ControlsPageItems {
+	CONTROLS_RETURN,
+
+	CONTROLS_COUNT
 };
 
 struct Menu {
@@ -34,6 +43,7 @@ struct Menu {
 	
 	MainPageItems 	  current_main_item     = MAIN_START;
 	SettingsPageItems current_settings_item = SETTINGS_FULLSCREEN;
+	ControlsPageItems current_controls_item = CONTROLS_RETURN;
 };
 
 void draw_opening_menu(Menu *menu);

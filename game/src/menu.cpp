@@ -3,20 +3,7 @@
 #include "raylib.h"
 #include "platformer.h"
 
-static void handle_main_page_inputs(Menu *menu, Game *game) {
-	int current_item = static_cast<int>(menu->current_main_item);
-	int total_items  = static_cast<int>(MAIN_COUNT);
-	int prev_item    = (current_item - 1 + total_items) % total_items;
-	
-	// @TODO: Do we want to add more inputs for navigating the menu? Also, do we want to add
-	// infinite increments / decrements when the button is held for a period of time?
-	if (IsKeyPressed(KEY_DOWN)) {
-		menu->current_main_item = static_cast<MainPageItems>((current_item + 1) % total_items);
-	} else if (IsKeyPressed(KEY_UP)) {
-		menu->current_main_item = static_cast<MainPageItems>(prev_item);
-	}
-
-	// Handling main page activations with the ENTER key.
+static void handle_main_page_interactions(Menu *menu, Game *game) {
 	if (IsKeyPressed(KEY_ENTER)) {
 		switch(menu->current_main_item) {
 		case MAIN_START: {
@@ -38,7 +25,117 @@ static void handle_main_page_inputs(Menu *menu, Game *game) {
 			} else if (game->state == GAME_OPENING_MENU) {
 				push_command_simple(game, CMD_QUIT_GAME);
 			}
-			
+		
+			break;
+		}
+		default: {
+			break;
+		}
+		}
+	}
+
+	// @NOTE: Currently, there aren't any options on the main page that will utilise the arrow
+	// keys to change stuff, but these are here just in case we do add them later.
+#if 0
+	if (IsKeyPressed(KEY_LEFT)) {
+
+	}
+	if (IsKeyPressed(KEY_RIGHT)) {
+
+	}
+#endif
+}
+
+static void handle_settings_page_interactions(Menu *menu, Game *game) {
+	if (IsKeyPressed(KEY_ENTER)) {
+		switch(menu->current_settings_item) {
+		case SETTINGS_FULLSCREEN: {
+			// Toggle between 3 options, pressing enter increments.
+			// - Windowed
+			// - Fullscreen
+			// - Borderless Windowed
+			break;
+		}
+		case SETTINGS_RESOLUTION: {
+			// Navigate through a list of 16:9 resolutions, pressing enter increments.
+			// - 1280x720
+			// - 1366x768
+			// - 1920x1080
+			break;
+		}
+		case SETTINGS_SAVE: {
+			// Overwrite the new settings in a config file and reload it, causing changes to take
+			// effect. 
+			break;
+		}
+		case SETTINGS_RETURN: {
+			// We should keep track if settings have changed beforehand so that we can ask
+			// the user if they want to save their changes or not if they decide to exit early. So in
+			// psuedocode...
+
+			// 1. Check if settings state has been changed
+			// 2. If the settings have not changed, then allow the user to return to main.
+			menu->current_menu_page = PAGE_MAIN;
+			// 3. Else, if the settings have changed and the user has NOT saved them, then display:
+			// display_settings_warning();
+			// 4. Based on the input within the warning popup which are: Save / Discard Changes...
+			// 5. If discard, then go back to main page normally
+			// 6. If save, follow the path of the SETTINGS_SAVE case.
+
+			break;
+		}
+
+		default: {
+			break;
+		}
+		}
+	}
+
+	// Handling left + right arrow inputs to navigate lists of stuff directly.
+	if (IsKeyPressed(KEY_LEFT)) {
+		switch(menu->current_settings_item) {
+		case SETTINGS_FULLSCREEN: {
+			// Move backwards through the list.
+			// - Windowed
+			// - Fullscreen
+			// - Borderless Windowed
+			break;
+		}
+		case SETTINGS_RESOLUTION: {
+			// Navigate through a list of 16:9 resolutions, move backwards.
+			// - 1280x720
+			// - 1366x768
+			// - 1920x1080
+			break;
+		}
+		case SETTINGS_SAVE: {
+			// This wouldn't do anything.
+			break;
+		}
+		default: {
+			break;
+		}
+		}
+	}
+
+	if (IsKeyPressed(KEY_RIGHT)) {
+		switch(menu->current_settings_item) {
+		case SETTINGS_FULLSCREEN: {
+			// Move forwards through the list.
+			// - Windowed
+			// - Fullscreen
+			// - Borderless Windowed
+			break;
+		}
+		case SETTINGS_RESOLUTION: {
+			// Navigate through a list of 16:9 resolutions, move forwards.
+			// - 1280x720
+			// - 1366x768
+			// - 1920x1080
+			break;
+		}
+		case SETTINGS_SAVE: {
+			// This wouldn't do anything.
 			break;
 		}
 		default: {
@@ -48,32 +145,117 @@ static void handle_main_page_inputs(Menu *menu, Game *game) {
 	}
 }
 
-static void handle_settings_page_inputs(Menu *menu) {
-	int current_item = static_cast<int>(menu->current_settings_item);
-	int total_items  = static_cast<int>(SETTINGS_COUNT);
-	int prev_item	 = (current_item - 1 + total_items) % total_items;
-	
-	if (IsKeyPressed(KEY_DOWN)) {
-		menu->current_settings_item = static_cast<SettingsPageItems>((current_item + 1)
-																	 % total_items);
-	} else if (IsKeyPressed(KEY_UP)) {
-		menu->current_settings_item = static_cast<SettingsPageItems>(prev_item);
-	}
-
-	if (IsKeyPressed(KEY_ESCAPE)) {
-		menu->current_menu_page = PAGE_MAIN;
+static void handle_controls_page_interactions(Menu *menu, Game *game) {
+	if (IsKeyPressed(KEY_ENTER)) {
+		switch (menu->current_controls_item) {
+		case CONTROLS_RETURN: {
+			menu->current_menu_page = PAGE_MAIN;
+			break;
+		}
+		default: {
+			break;
+		}
+		}
 	}
 }
 
-static void handle_controls_page_inputs(Menu *menu) {
-	// @TODO: We don't have any controls page to show off yet, but when we do, this needs to get
-	// updated.
+static void process_menu_inputs(Menu *menu, Game *game) {
+	// First check if there are any page / state changes.
 	if (IsKeyPressed(KEY_ESCAPE)) {
-		menu->current_menu_page = PAGE_MAIN;
+		if (menu->current_menu_page == PAGE_MAIN) {
+			push_command_change_state(game, GAME_WORLD);
+			return;
+		}
+		if (menu->current_menu_page == PAGE_SETTINGS) {
+			menu->current_menu_page = PAGE_MAIN;
+			return;
+		}
+		if (menu->current_menu_page == PAGE_CONTROLS) {
+			menu->current_menu_page = PAGE_MAIN;
+			return;
+		}
 	}
+
+	// Then handle any interactions (activations with ENTER, inner navigations with left + right).
+	switch (menu->current_menu_page) {
+	case PAGE_MAIN: {
+		handle_main_page_interactions(menu, game);
+		break;
+	}
+	case PAGE_SETTINGS: {
+		handle_settings_page_interactions(menu, game);
+		break;
+	}
+	case PAGE_CONTROLS: { // @TODO: There are no controls items yet.
+		handle_controls_page_interactions(menu, game);
+		break;
+	}
+	default: {
+		break;
+	}
+	}
+
+	// Lastly, check for up + down navigation of menu items based on current_menu_page.
+	if (IsKeyPressed(KEY_DOWN)) { // Handling menu item increments.
+		int current_item, total_items;
+		switch (menu->current_menu_page) {
+		case PAGE_MAIN: {
+			current_item = static_cast<int>(menu->current_main_item);
+			total_items  = static_cast<int>(MAIN_COUNT);
+			menu->current_main_item = static_cast<MainPageItems>((current_item + 1) % total_items);
+			break;
+		}
+		case PAGE_SETTINGS: {
+			current_item = static_cast<int>(menu->current_settings_item);
+			total_items  = static_cast<int>(SETTINGS_COUNT);
+			menu->current_settings_item = static_cast<SettingsPageItems>((current_item + 1) % total_items);
+			break;
+		}
+		case PAGE_CONTROLS: {
+			current_item = static_cast<int>(menu->current_controls_item);
+			total_items  = static_cast<int>(CONTROLS_COUNT);
+			menu->current_controls_item = static_cast<ControlsPageItems>((current_item + 1) % total_items);
+			break;
+		}
+		default: {
+			break;
+		}
+		}
+	}
+
+	if (IsKeyPressed(KEY_UP)) { // Handling menu item decrements.
+		int current_item, total_items, prev_item;
+		switch (menu->current_menu_page) {
+		case PAGE_MAIN: {
+			current_item = static_cast<int>(menu->current_main_item);
+			total_items  = static_cast<int>(MAIN_COUNT);
+			prev_item    = (current_item - 1 + total_items) % total_items;
+			menu->current_main_item = static_cast<MainPageItems>(prev_item);
+			break;
+		}
+		case PAGE_SETTINGS: {
+			current_item = static_cast<int>(menu->current_settings_item);
+			total_items  = static_cast<int>(MAIN_COUNT);
+			prev_item    = (current_item - 1 + total_items) % total_items;
+			menu->current_settings_item = static_cast<SettingsPageItems>(prev_item);
+			break;
+		}
+		case PAGE_CONTROLS: {
+			current_item = static_cast<int>(menu->current_controls_item);
+			total_items  = static_cast<int>(CONTROLS_COUNT);
+			prev_item    = (current_item - 1 + total_items) % total_items;
+			menu->current_controls_item = static_cast<ControlsPageItems>(prev_item);
+			break;
+		}
+		default: {
+			break;
+		}
+		}
+	}
+
 }
 
-static void draw_main_page(Menu *menu) {
+static void draw_opening_main_page(Menu *menu) {
 	// @TODO: Find a custom font that we can use so that we don't need to rely on raylib's
 	// default font.
 	
@@ -123,29 +305,7 @@ static void draw_main_page(Menu *menu) {
 	const int credits_text_y     = GetScreenHeight() - menu_font_size;
 	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
 }
-
-
-void draw_opening_menu(Menu *menu) {
-	ClearBackground(BLACK);
-
-	switch (menu->current_menu_page) {
-	case PAGE_MAIN: {
-		draw_main_page(menu);
-		break;
-	}
-	case PAGE_SETTINGS: {
-		break;
-	}
-	case PAGE_CONTROLS: {
-		break;
-	}
-	default: {
-		break;
-	}
-	}
-}
-
-void draw_in_game_menu(Menu *menu) {
+static void draw_paused_menu(Menu *menu) {
 	Rectangle bg  = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
 	Color overlay = { 0, 0, 0, 190 };
 	DrawRectangleRec(bg, overlay);
@@ -193,25 +353,60 @@ void draw_in_game_menu(Menu *menu) {
 	}
 }
 
-void update_menu(Menu *menu, Game *game) {
-	// Processing menu inputs.
+// @NOTE: The settings + controls pages are drawn the exact same way whether the menu is in the
+// opening menu or paused versions (handled by 'state' member in the game struct).
+static void draw_settings_page(Menu *menu) {
+	
+}
+
+static void draw_controls_page(Menu *menu) {
+	
+}
+
+void draw_opening_menu(Menu *menu) {
+	ClearBackground(BLACK); // Drawing a black BG for opening menu
 	switch (menu->current_menu_page) {
 	case PAGE_MAIN: {
-		handle_main_page_inputs(menu, game);
+		draw_opening_main_page(menu);
 		break;
 	}
 	case PAGE_SETTINGS: {
-		handle_settings_page_inputs(menu);
+		draw_settings_page(menu);
 		break;
 	}
 	case PAGE_CONTROLS: {
-		handle_controls_page_inputs(menu);
+		draw_controls_page(menu);
 		break;
 	}
+	default: {
+		break;
+	}
+	}
+}
 
-	default : {
-		printf("ERROR: Unknown page.\n");
+void draw_in_game_menu(Menu *menu) {
+	// @NOTE: We skip on clearing background since we also draw a frame of the game environment
+	// as the background.
+	
+	switch (menu->current_menu_page) {
+	case PAGE_MAIN: {
+		draw_paused_menu(menu);
+		break;
+	}
+	case PAGE_SETTINGS: {
+		draw_settings_page(menu);
+		break;
+	}
+	case PAGE_CONTROLS: {
+		draw_controls_page(menu);
+		break;
+	}
+	default: {
 		break;
 	}
 	}
+}
+
+void update_menu(Menu *menu, Game *game) {
+	process_menu_inputs(menu, game);
 }

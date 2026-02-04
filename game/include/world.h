@@ -10,7 +10,6 @@ struct Tile {
 	Rectangle rect;
 };
 
-
 struct World {
 	std::vector<Tile> tiles; // @Temp: Just want to test collisions, these aren't even gonna be
 						     // a tile, just wanna draw some rectangles for early testing.

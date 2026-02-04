@@ -2,8 +2,12 @@
 #define PLATFORMER_H
 
 #include "raylib.h"
+
+#include "menu.h"
 #include "world.h"
 #include "player.h"
+
+const int MAX_COMMAND_COUNT = 16;
 
 enum GameState {
 	GAME_OPENING_MENU = 0,
@@ -15,34 +19,28 @@ enum GameState {
 	GAME_COUNT
 };
 
-enum MenuPages {
-	PAGE_MAIN = 0,
-	PAGE_SETTINGS,
-	PAGE_CONTROLS,
+enum CommandType {
+	CMD_NONE = 0,
+	CMD_CHANGE_STATE,
+	CMD_RESET_GAME,
+	CMD_QUIT_GAME,
 
-	PAGE_COUNT
+	CMD_COUNT
 };
 
-enum MainMenuItems {
-	MENU_START = 0,
-	MENU_SETTINGS,
-	MENU_CONTROLS,
-	MENU_EXIT,
-
-	MENU_COUNT
-};
-
-struct GameMainMenu {
-	MainMenuItems current_menu_item = MENU_START; 
-	MenuPages current_page = PAGE_MAIN;
+struct GameCommand {
+	CommandType type;
+	union {
+		GameState target_state;
+	} data;
 };
 
 struct Game {
-	// Menu / UI things.
 	GameState state = GAME_OPENING_MENU;
-	GameMainMenu main_menu;
+	GameCommand pending_commands[MAX_COMMAND_COUNT] = {};
+	int command_count = 0;
 
-	// In-game stuff.
+	Menu menu;
 	World world;
 	Player player;
 	Camera2D camera;
@@ -51,6 +49,11 @@ struct Game {
 void init_game(Game *game);
 void update_game(Game *game);
 void draw_game(Game *game);
+
+// Stuff relating to the application / game commands.
+void push_command_simple(Game *game, CommandType type);
+void push_command_change_state(Game *game, GameState target_state);
+void process_command_list(Game *game);
 
 // @Dev: This is just for resetting the game to the first state by re-initting states.
 void reset_game_state(Game *game);

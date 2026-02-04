@@ -1,99 +1,8 @@
 #include "platformer.h"
 #include "raylib.h"
 
-#include <stdio.h> // For printing stuff. 
-
-static void process_opening_menu_inputs(Game* game) {
-	auto menu = &game->main_menu;
-	int current_item = static_cast<int>(menu->current_menu_item);
-	int total_items  = static_cast<int>(MENU_COUNT);
-
-	if (IsKeyPressed(KEY_DOWN)) {
-		menu->current_menu_item = static_cast<MainMenuItems>((current_item + 1) % total_items);
-	} else if (IsKeyPressed(KEY_UP)) {
-		int prev_item = (current_item - 1 + total_items) % total_items;
-		menu->current_menu_item = static_cast<MainMenuItems>(prev_item);
-	}
-
-	if (IsKeyPressed(KEY_ENTER)) {
-		switch(game->main_menu.current_menu_item) {
-		case MENU_START: {
-			game->state = GAME_WORLD;
-			break;
-		}
-		case MENU_SETTINGS: {
-			printf("Settings page not implemented yet.\n");
-			break;
-		}
-		case MENU_CONTROLS: {
-			printf("Controls page not implemented yet.\n");
-			break;
-		}
-		case MENU_EXIT: {
-			CloseWindow();
-			break;
-		}
-		default: {
-			break;
-		}
-		}
-	}
-}
-
-static void draw_opening_menu(Game *game) {
-	ClearBackground(BLACK);
-
-	process_opening_menu_inputs(game);
-
-	// @TODO: Find a custom font that we can use so that we don't need to rely on raylib's
-	// default font.
-
-	// Drawing the main title of the game (still in placeholder).
-	const char *title = "PLACEHOLDER NAME";
-	const int title_font_size = 64;
-	int text_width = MeasureText(title, title_font_size);
-	int center_x = GetScreenWidth()  / 2;
-	int center_y = GetScreenHeight() / 2;
-	int x = center_x - (text_width / 2);
-	int y = center_y * 0.3f; 
-	DrawText(title, x, y, title_font_size, RAYWHITE);
-
-	// Drawing main menu options.
-	const char *button_text[] = { "START", "SETTINGS", "CONTROLS", "QUIT" };
-	const int menu_font_size = 32;
-	Rectangle button_rect;
-	button_rect.width  = 400;
-	button_rect.height = 50;
-	button_rect.x = center_x - (button_rect.width / 2);
-
-	for (int i = 0; i < 4; ++i) {
-		int button_gap = (100 * (i + 1));
-		button_rect.y = y + button_gap;
-
-		int current_button_text_width = MeasureText(button_text[i], menu_font_size);
-		int button_text_x = center_x - (current_button_text_width / 2);
-		int button_text_y = button_rect.y + 10;
-
-		DrawRectangleRec(button_rect, WHITE);
-		if (game->main_menu.current_menu_item == i) {
-			const int outline_rect_padding = 5;
-			Rectangle outline_rect;
-			outline_rect.x	    = button_rect.x - outline_rect_padding;
-			outline_rect.y 		= button_rect.y - outline_rect_padding;
-			outline_rect.width  = button_rect.width  + (outline_rect_padding * 2);
-			outline_rect.height = button_rect.height + (outline_rect_padding * 2);
-
-			DrawRectangleLinesEx(outline_rect, 3.0f, YELLOW);                            
-		}
-		DrawText(button_text[i], button_text_x, button_text_y, menu_font_size, BLACK);
-	}
-
-	const char *credits			 = "Created by McFlubberBubber";
-	const int credits_text_width = MeasureText(credits, menu_font_size);
-	const int credits_text_x 	 = center_x - (credits_text_width / 2);
-	const int credits_text_y     = GetScreenHeight() - menu_font_size;
-	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
-}
+#include <stdio.h> 		 // For printing stuff. 
+#include "application.h" // For accessing the app state.
 
 static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
@@ -105,7 +14,7 @@ static void draw_debug_overlay(Game *game) {
 	const int center_x      = GetScreenWidth()  / 2;
 	const int center_y      = GetScreenHeight() / 2;
 	
-	char state_text[64];
+	char state_text[32];
 	switch(player->state) {
 	case PLAYER_IDLE: {
 		snprintf(state_text, sizeof(state_text), "PLAYER_STATE: IDLE");
@@ -153,7 +62,54 @@ static void draw_debug_overlay(Game *game) {
 	snprintf(screen_space_y, sizeof(screen_space_y), "PLAYER_Y: %2f", player->pos.y);
 	DrawText(screen_space_y, text_x, (text_y + (font_size * 3)), font_size, WHITE);
 
-	// Drawing death screen.
+	char game_state[32];
+	switch(game->state) {
+	case GAME_OPENING_MENU: {
+		snprintf(game_state, sizeof(game_state), "GAME_STATE: OPENING_MENU");
+		break;
+	}
+	case GAME_MENU: {
+		snprintf(game_state, sizeof(game_state), "GAME_STATE: MENU");
+		break;
+	}
+	case GAME_WORLD: {
+		snprintf(game_state, sizeof(game_state), "GAME_STATE: WORLD");
+		break;
+	}
+	case GAME_EDITOR: {
+		snprintf(game_state, sizeof(game_state), "GAME_STATE: EDITOR");
+		break;
+	}
+	default: {
+		snprintf(game_state, sizeof(game_state), "GAME_STATE: ERROR");
+		break;
+	}
+	}
+	DrawText(game_state, text_x, (text_y + (font_size * 4)), font_size, WHITE);
+
+	char menu_page[24];
+	switch(game->menu.current_menu_page) {
+	case PAGE_MAIN: {
+		snprintf(menu_page, sizeof(menu_page), "MENU_PAGE: MAIN");
+		break;
+	}
+	case PAGE_SETTINGS: {
+		snprintf(menu_page, sizeof(menu_page), "MENU_PAGE: SETTINGS");
+		break;
+	}
+	case PAGE_CONTROLS: {
+		snprintf(menu_page, sizeof(menu_page), "MENU_PAGE: CONTROLS");
+		break;
+	}
+	default: {
+		snprintf(menu_page, sizeof(menu_page), "MENU_PAGE: ERROR");
+		break;
+	}
+	}
+	DrawText(menu_page, text_x, (text_y + (font_size * 5)), font_size, WHITE);
+
+
+	// Drawing death screen. @TODO: This is NOT debug overlay, this is genuine UI.
 	if (player->health == 0) {
 		const char *death = "YOU ARE DEAD.";
 		int width = MeasureText(death, font_size * 2);
@@ -180,7 +136,7 @@ static void draw_game_environment(Game *game) {
 	EndMode2D();
 
 	// Drawing UI things using screen space.
-	draw_debug_overlay(game);
+	// draw_ui(game);
 }
 
 static void init_camera(Camera2D *camera) {
@@ -196,6 +152,25 @@ static void init_camera(Camera2D *camera) {
     camera->zoom     = 1.0f;
 }
 
+static void handle_game_state_transitions(Game *game) {
+	if (IsKeyPressed(KEY_ESCAPE)) {
+		switch (game->state) {
+		case GAME_WORLD: {
+			game->state = GAME_MENU;
+			break;
+		}
+		case GAME_MENU: {
+			game->state = GAME_WORLD;
+			break;
+		}
+
+		default: {
+			break;
+		}
+		}
+	}
+}
+
 void init_game(Game *game) {
 	init_camera(&game->camera);
 	init_world(&game->world);
@@ -203,21 +178,49 @@ void init_game(Game *game) {
 }
 
 void update_game(Game *game) {
-	if (game->state == GAME_WORLD) {
-		if (IsKeyPressed(KEY_R)) reset_game_state(game);
+	game->command_count = 0;
+
+	switch (game->state) {
+	case GAME_OPENING_MENU: {
+		update_menu(&game->menu, game);
+		break;
+	}
+	case GAME_MENU: {
+		if (IsKeyPressed(KEY_ESCAPE)) push_command_change_state(game, GAME_WORLD);
+		update_menu(&game->menu, game);
+		break;
+	}
+	case GAME_WORLD: {
+		if (IsKeyPressed(KEY_R))      push_command_simple(game, CMD_RESET_GAME);
+		if (IsKeyPressed(KEY_ESCAPE)) {
+			game->menu.current_main_item = MAIN_START;
+			push_command_change_state(game, GAME_MENU);
+		}
+		
 		update_world(&game->world, &game->player, &game->camera);
 		update_player(&game->player, &game->world);
+		break;
 	}
+	case GAME_EDITOR: {
+		break;
+	}
+	default: {
+		break;
+	}
+	}
+
+	process_command_list(game);
 };
 
 void draw_game(Game *game) {
 	switch(game->state) {
 	case GAME_OPENING_MENU: {
-		draw_opening_menu(game);
+		draw_opening_menu(&game->menu);
 		break;
 	}
 	case GAME_MENU: {
-		// draw_in_game_menu(game);
+		draw_game_environment(game);
+		draw_in_game_menu(&game->menu);
 		break;
 	}
 	case GAME_WORLD: {
@@ -233,9 +236,82 @@ void draw_game(Game *game) {
 	}
 		
 	}
+
+	draw_debug_overlay(game);
 }
+
+void push_command_simple(Game *game, CommandType type) {
+	if (game->command_count >= MAX_COMMAND_COUNT) {
+#ifdef DEBUG
+		fprintf(stderr, "CMD_ERROR: Command queue is full.\n");
+		assert(false);
+#endif
+		return;
+	}
+
+	game->pending_commands[game->command_count].type = type;
+	game->command_count++;
+}
+
+void push_command_change_state(Game *game, GameState target_state) {
+	if (game->command_count >= MAX_COMMAND_COUNT) {
+#ifdef DEBUG
+		fprintf(stderr, "CMD_ERROR: Command queue is full.\n");
+		assert(false);
+#endif
+		return;
+	}
+
+	game->pending_commands[game->command_count].type = CMD_CHANGE_STATE;
+	game->pending_commands[game->command_count].data.target_state = target_state;
+	game->command_count++;
+}
+
+void process_command_list(Game *game) {
+	for (int i = 0; i < game->command_count; ++i) {
+		auto &cmd = game->pending_commands[i];
+		switch (cmd.type) {
+		case CMD_NONE: {
+			break;
+		}
+		case CMD_CHANGE_STATE: {
+			game->state = cmd.data.target_state;
+			break;
+		}
+		case CMD_RESET_GAME: {
+			reset_game_state(game);
+			break;
+		}
+		case CMD_QUIT_GAME: {
+			Application::instance->should_close = true;
+			break;
+		}
+		}
+	}
+	game->command_count = 0;
+}
+
 
 // @Dev
 void reset_game_state(Game *game) {
-	init_game(game);
+#if 1
+	init_player(&game->player);
+#else
+	auto player = &game->player;
+	player->pos.x = 0;
+	player->pos.y = 0;
+	
+	player->vel.x = 0.0f;
+	player->vel.y = 0.0f;
+	
+	player->sprite.x = player->pos.x;
+	player->sprite.y = player->pos.y;
+	player->sprite.width  = 20;
+	player->sprite.height = 20;
+
+	player->state	    = PLAYER_IDLE;
+	player->prev_state  = player->state;
+	player->is_grounded = false;
+	player->health = 3;
+#endif
 }

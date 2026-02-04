@@ -21,13 +21,19 @@ TODO LIST
 - Think about ways to improve collision detection rather than iterating through the entire array
   of tiles when in the game world. Maybe even switch to raycasting from the player to prevent
   flickering of states in the debug overlay.
-- Figure out the camera system, maybe some levels want a fixed camera, some may want to scroll with
-  the player, possibly figure out some smooth transitions between "screens" (like Celeste). 
-
+- We got the camera system working but we should really be figuring out how we should format our
+  world / levels / screens for the long term. We got things working using the screen dimensions,
+  but we don't really know if those will continue working once we get the settings page running
+  (which will allow different resolution scaling and stuff). Refer to the next section since it
+  kinda relates to this one.
+  
 - Think about how the world editor would work (I had an idea of making it similiar to the
   geometry dash editor, but minus all the triggers, but we could do something like that!).
 - Figure out some way we can store the world data to represent it within the game. That way we
   have save the "levels" in some file format somewhere in the game's data folder, and read from that.
+- Conventionally, if we did store things in a screen-by-screen format (kinda like Animal Well), then
+  we would be able to represent things easily in a simple array of integers, where 0's can be air spaces,
+  1's are tiles, 2's are static spikes, etc.
 
 - We can get our hotloader functionality put into the game, along with some configuration file
   that gets read from / written to to save user config options.

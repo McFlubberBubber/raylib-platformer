@@ -5,7 +5,7 @@
 
 // @Temp: just to put some tiles on the screen for testing.
 static void init_some_tiles(World *world) {
-	constexpr float tile_width  = 50.0f;
+	constexpr float tile_width  = 40.0f;
 	constexpr float tile_height = tile_width;
 	constexpr int   tile_count  = 100; 
 	constexpr int   starting_x  = -650;  // Start from the left.

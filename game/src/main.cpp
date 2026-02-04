@@ -15,7 +15,7 @@ int main() {
 	Application app;
 	init_app(&app);
 
-	while (!WindowShouldClose()) {
+	while (!WindowShouldClose() && !app.should_close) {
 		update_app(&app);
 	}
 

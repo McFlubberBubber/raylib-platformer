@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include <stdio.h>
+
 #include "world.h"
 
 // @Speed: Currently, we iterate through EVERY TILE that exists within the world, we could change
@@ -53,8 +54,8 @@ void init_player(Player *player) {
 
 	player->sprite.x = player->pos.x;
 	player->sprite.y = player->pos.y;
-	player->sprite.width  = 25;
-	player->sprite.height = 25;
+	player->sprite.width  = 20;
+	player->sprite.height = 20;
 
 	player->state	    = PLAYER_IDLE;
 	player->prev_state  = player->state;

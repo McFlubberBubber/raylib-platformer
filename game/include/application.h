@@ -11,6 +11,8 @@ struct Application {
 
 	int width  = 1280;
 	int height = 720;
+	
+	bool should_close;
 
 	// Game-specific stuff.
 	Game game;

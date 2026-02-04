@@ -12,6 +12,7 @@ void init_app(Application *app) {
 	InitWindow(app->width, app->height, app->title);
 	SetTargetFPS(app->target_fps);
 	SetExitKey(KEY_Q);
+	app->should_close = false;
 
 	init_game(&app->game);
 	
@@ -20,6 +21,7 @@ void init_app(Application *app) {
 
 void update_app(Application *app) {
 	BeginDrawing(); // @TODO: Should this be moved after we have finished running our updates?
+	// BeginBlendMode(BLEND_ALPHA);
 	
 	update_game(&app->game);
 	draw_game(&app->game);

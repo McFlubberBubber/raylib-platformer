@@ -1,6 +1,7 @@
 #include "menu.h"
 
 #include "raylib.h"
+#include "application.h"
 #include "platformer.h"
 
 static void handle_main_page_interactions(Menu *menu, Game *game) {
@@ -305,21 +306,14 @@ static void draw_opening_main_page(Menu *menu) {
 	const int credits_text_y     = GetScreenHeight() - menu_font_size;
 	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
 }
-static void draw_paused_menu(Menu *menu) {
-	Rectangle bg  = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
-	Color overlay = { 0, 0, 0, 190 };
-	DrawRectangleRec(bg, overlay);
 
-	Color vignette = { 0, 0, 0, 50 };
-	DrawRectangleRec(bg, vignette);
-	
+static void draw_paused_menu(Menu *menu) {
 	const char *title   = "PAUSED";
 	const int font_size = 40;
 	int text_width      = MeasureText(title, font_size);
 	int center_x        = (int)(GetScreenWidth()  / 2); 
 	int starting_y      = (int)(GetScreenHeight() * 0.2f);
-	
-	DrawText("PAUSED", (center_x - (text_width / 2)), starting_y, font_size, WHITE);
+	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
 
 	// Drawing the menu options
 	const char *button_text[] = { "RESUME", "SETTINGS", "CONTROLS", "BACK TO MAIN MENU" };
@@ -356,10 +350,34 @@ static void draw_paused_menu(Menu *menu) {
 // @NOTE: The settings + controls pages are drawn the exact same way whether the menu is in the
 // opening menu or paused versions (handled by 'state' member in the game struct).
 static void draw_settings_page(Menu *menu) {
+	// Getting access to the application since we will be changing it's members and stuff.
+	Application *app = Application::instance;
+
+	const char *title   = "SETTINGS";
+	const int font_size = 40;
+	int text_width      = MeasureText(title, font_size);
+	int center_x        = (int)(GetScreenWidth()  / 2); 
+	int starting_y      = (int)(GetScreenHeight() * 0.2f);
+	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);	
+
+	// Each of these have their own buffers since we want to modify the string contents based on the
+	// status of that setting.
+	char display[24];
+	char resolution[24];
+	char save[8];
+	char exit[8];
+
 	
 }
 
 static void draw_controls_page(Menu *menu) {
+	const char *title   = "CONTROLS";
+	const int font_size = 40;
+	int text_width      = MeasureText(title, font_size);
+	int center_x        = (int)(GetScreenWidth()  / 2); 
+	int starting_y      = (int)(GetScreenHeight() * 0.2f);
+	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
+
 	
 }
 
@@ -386,7 +404,13 @@ void draw_opening_menu(Menu *menu) {
 
 void draw_in_game_menu(Menu *menu) {
 	// @NOTE: We skip on clearing background since we also draw a frame of the game environment
-	// as the background.
+	// as the background. But we do draw this low opacitiy rect.
+	Rectangle bg  = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
+	Color overlay = { 0, 0, 0, 190 };
+	DrawRectangleRec(bg, overlay);
+
+	Color vignette = { 0, 0, 0, 50 };
+	DrawRectangleRec(bg, vignette);
 	
 	switch (menu->current_menu_page) {
 	case PAGE_MAIN: {

@@ -3,18 +3,38 @@
 
 #include "platformer.h"
 
+enum DisplayMode {
+	WINDOWED_MODE = 0,
+	FULLSCREEN_MODE,
+	BORDERLESS_WINDOWED_MODE,
+
+	DISPLAY_MODE_COUNT
+};
+
+enum ResolutionType {
+	_1280x720_ = 0,
+	_1366x768_,
+	_1920x1080_,
+
+	RESOLUTION_COUNT
+};
+	
 struct Application {
 	static Application *instance; // Singleton stuff. 
 	
 	const char *title = "Platformer";
-	int target_fps = 60;
+	ResolutionType res = _1280x720_;
+#if 1
+	DisplayMode display_mode = WINDOWED_MODE;
+#else
+	DisplayMode display_mode = FULLSCREEN_MODE;
+#endif
 
-	int width  = 1280;
-	int height = 720;
-	
+	int monitor, monitor_width, monitor_height;
+	int width, height;
+	int target_fps = 60;
 	bool should_close;
 
-	// Game-specific stuff.
 	Game game;
 };
 

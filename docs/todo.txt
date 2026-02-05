@@ -5,12 +5,10 @@ TODO LIST
 - @BUG: Since dragging the window around blocks the events it receives, it actually results
 		in breaking our game code as the player sometimes clips out of the screen and just
 		teleports to some random value.
-- @BUG: Since we hardcoded the options to boot up the game in either windowed, fullscreen or
-		borderless windowed, we can actually see how the game sorta changes when in these different
-		modes. The first thing that is apparent is when we are on bigger resolutions, that affects
-		how many tiles we can see on the screen which is obviously not what we want, so we need to
-		fix that and ensure that the user can always see the same amount of stuff no matter what
-		resolution / display mode we are on.
+
+- We fixed the bug with stuff that was related to screen dimension things, but there may be a few
+  more bugs that we could have missed. Gonna leave this todo here just incase, but it seems to be fine
+  for now.
 		
 - Always refactor for better architecture, but also get things working first.
 

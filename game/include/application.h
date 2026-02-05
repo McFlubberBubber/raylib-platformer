@@ -1,6 +1,7 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include "raylib.h"
 #include "platformer.h"
 
 enum DisplayMode {
@@ -30,8 +31,15 @@ struct Application {
 	DisplayMode display_mode = FULLSCREEN_MODE;
 #endif
 
+	// Related to the actual window and monitor specs.
 	int monitor, monitor_width, monitor_height;
 	int width, height;
+
+	RenderTexture2D game_render_target;
+	Rectangle       game_viewport;
+	int game_width  = 1920;
+	int game_height = 1080;
+
 	int target_fps = 60;
 	bool should_close;
 
@@ -40,6 +48,7 @@ struct Application {
 
 void init_app(Application *app);
 void update_app(Application *app);
+void draw_app(Application *app);
 void shutdown_app(Application *app);
 
 #endif

@@ -17,6 +17,7 @@ int main() {
 
 	while (!WindowShouldClose() && !app.should_close) {
 		update_app(&app);
+		draw_app(&app);
 	}
 
 	shutdown_app(&app);

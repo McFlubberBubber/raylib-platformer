@@ -1,7 +1,8 @@
 #include "world.h"
 
-#include "player.h"
+//#include "player.h"
 #include "raymath.h" // For Lerp
+#include "application.h"
 
 // @Temp: just to put some tiles on the screen for testing.
 static void init_some_tiles(World *world) {
@@ -34,8 +35,9 @@ static void init_some_tiles(World *world) {
 }
 
 void init_world(World *world) {
-	world->screen_width		    = GetScreenWidth();
-	world->screen_height	    = GetScreenHeight();
+	Application *app = Application::instance;
+	world->screen_width		    = app->game_width;
+	world->screen_height	    = app->game_height;
 	world->current_screen_index = 0;
 	world->total_screens        = 10;
 

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "world.h"
+#include "application.h"
 
 // @Speed: Currently, we iterate through EVERY TILE that exists within the world, we could change
 // this where we only check collisions that are within range of the player, or if the tiles are
@@ -38,17 +38,11 @@ static void check_horizontal_collisions(Player *player, World *world) {
 }
 
 void init_player(Player *player) {
-	int center_x = GetScreenWidth() / 2;
+	Application *app = Application::instance;
+	int center_x = app->game_width / 2;
 
-	// @TODO: This is all screen space coords, we need to change these to world space.
-#if 0 
-	player->pos.x = center_x;
-	player->pos.y = GetScreenHeight() * 0.2f; // Just drop them from the top-ish
-#else
 	player->pos.x = 0;
 	player->pos.y = 0;
-#endif
-
 	player->vel.x = 0.0f;
 	player->vel.y = 0.0f;
 

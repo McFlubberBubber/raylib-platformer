@@ -5,14 +5,16 @@
 #include "application.h" // For accessing the app state.
 
 static void draw_debug_overlay(Game *game) {
+	Application *app = Application::instance;
+
 	DrawFPS(0, 0);
 
 	auto player = &game->player;
 	constexpr int font_size = 18;
 	constexpr int text_x    = 0;
 	constexpr int text_y    = 20;
-	const int center_x      = GetScreenWidth()  / 2;
-	const int center_y      = GetScreenHeight() / 2;
+	const int center_x      = app->game_width  / 2;
+	const int center_y      = app->game_height / 2;
 	
 	char state_text[32];
 	switch(player->state) {
@@ -140,13 +142,14 @@ static void draw_game_environment(Game *game) {
 }
 
 static void init_camera(Camera2D *camera) {
+	Application *app = Application::instance;
 	// Camera offset (displacement from target)
 	camera->target.x = 0; 
 	camera->target.y = 0;
 
 	// Camera target (rotation and zoom origin)
-    camera->offset.x = GetScreenWidth()  / 2;
-    camera->offset.y = GetScreenHeight() / 2;
+    camera->offset.x = app->game_width  / 2;
+    camera->offset.y = app->game_height / 2;
 
     camera->rotation = 0;
     camera->zoom     = 1.0f;
@@ -161,17 +164,22 @@ void init_game(Game *game) {
 void update_game(Game *game) {
 	game->command_count = 0;
 
+	// Handle global inputs (toggling debug overlay, console, special dev hotkeys?).
+	// handle_global_inputs(game);
+	
 	switch (game->state) {
 	case GAME_OPENING_MENU: {
 		update_menu(&game->menu, game);
 		break;
 	}
 	case GAME_MENU: {
-		// if (IsKeyPressed(KEY_ESCAPE)) push_command_change_state(game, GAME_WORLD);
 		update_menu(&game->menu, game);
 		break;
 	}
 	case GAME_WORLD: {
+		// @TODO: Should these inputs get moved to a process_game_input()? We already track inputs
+		// for player movement through the update_player(), but other inputs like maybe
+		// inventory, pausing the game, and so on, could be moved here...
 		if (IsKeyPressed(KEY_R)) push_command_simple(game, CMD_RESET_GAME);
 
 		if (IsKeyPressed(KEY_ESCAPE)) {

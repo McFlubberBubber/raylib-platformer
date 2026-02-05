@@ -259,13 +259,16 @@ static void process_menu_inputs(Menu *menu, Game *game) {
 static void draw_opening_main_page(Menu *menu) {
 	// @TODO: Find a custom font that we can use so that we don't need to rely on raylib's
 	// default font.
-	
+	Application *app = Application::instance;
+	const int game_width  = app->game_width;
+	const int game_height = app->game_height;
+
 	// Drawing the main title of the game (still in placeholder).
 	const char *title = "PLACEHOLDER NAME";
 	const int title_font_size = 64;
 	int text_width = MeasureText(title, title_font_size);
-	int center_x = GetScreenWidth()  / 2;
-	int center_y = GetScreenHeight() / 2;
+	int center_x = game_width  / 2;
+	int center_y = game_height / 2;
 	int x = center_x - (text_width / 2);
 	int y = center_y * 0.3f; 
 	DrawText(title, x, y, title_font_size, RAYWHITE);
@@ -303,16 +306,20 @@ static void draw_opening_main_page(Menu *menu) {
 	const char *credits			 = "Created by McFlubberBubber";
 	const int credits_text_width = MeasureText(credits, menu_font_size);
 	const int credits_text_x 	 = center_x - (credits_text_width / 2);
-	const int credits_text_y     = GetScreenHeight() - menu_font_size;
+	const int credits_text_y     = game_height - menu_font_size;
 	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
 }
 
 static void draw_paused_menu(Menu *menu) {
+	Application *app = Application::instance;
+	const int game_width  = app->game_width;
+	const int game_height = app->game_height;
+	
 	const char *title   = "PAUSED";
 	const int font_size = 40;
 	int text_width      = MeasureText(title, font_size);
-	int center_x        = (int)(GetScreenWidth()  / 2); 
-	int starting_y      = (int)(GetScreenHeight() * 0.2f);
+	int center_x        = (int)(game_width  / 2); 
+	int starting_y      = (int)(game_height * 0.2f);
 	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
 
 	// Drawing the menu options
@@ -352,12 +359,14 @@ static void draw_paused_menu(Menu *menu) {
 static void draw_settings_page(Menu *menu) {
 	// Getting access to the application since we will be changing it's members and stuff.
 	Application *app = Application::instance;
+	const int game_width  = app->game_width;
+	const int game_height = app->game_height;
 
 	const char *title   = "SETTINGS";
 	const int font_size = 40;
 	int text_width      = MeasureText(title, font_size);
-	int center_x        = (int)(GetScreenWidth()  / 2); 
-	int starting_y      = (int)(GetScreenHeight() * 0.2f);
+	int center_x        = (int)(game_width  / 2); 
+	int starting_y      = (int)(game_height * 0.2f);
 	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);	
 
 	// Each of these have their own buffers since we want to modify the string contents based on the
@@ -371,11 +380,15 @@ static void draw_settings_page(Menu *menu) {
 }
 
 static void draw_controls_page(Menu *menu) {
+	Application *app = Application::instance;
+	const int game_width  = app->game_width;
+	const int game_height = app->game_height;
+
 	const char *title   = "CONTROLS";
 	const int font_size = 40;
 	int text_width      = MeasureText(title, font_size);
-	int center_x        = (int)(GetScreenWidth()  / 2); 
-	int starting_y      = (int)(GetScreenHeight() * 0.2f);
+	int center_x        = (int)(game_width  / 2); 
+	int starting_y      = (int)(game_height * 0.2f);
 	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
 
 	
@@ -405,7 +418,8 @@ void draw_opening_menu(Menu *menu) {
 void draw_in_game_menu(Menu *menu) {
 	// @NOTE: We skip on clearing background since we also draw a frame of the game environment
 	// as the background. But we do draw this low opacitiy rect.
-	Rectangle bg  = { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() };
+	Application *app = Application::instance;
+	Rectangle bg  = { 0, 0, (float)app->game_width, (float)app->game_height };
 	Color overlay = { 0, 0, 0, 190 };
 	DrawRectangleRec(bg, overlay);
 

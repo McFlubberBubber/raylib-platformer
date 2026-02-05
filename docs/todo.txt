@@ -5,10 +5,11 @@ TODO LIST
 - @BUG: Since dragging the window around blocks the events it receives, it actually results
 		in breaking our game code as the player sometimes clips out of the screen and just
 		teleports to some random value.
-
-- We fixed the bug with stuff that was related to screen dimension things, but there may be a few
-  more bugs that we could have missed. Gonna leave this todo here just incase, but it seems to be fine
-  for now.
+- @BUG: Ever since we made the changes to render the game through the texture, there is this weird
+		bug that has popped up that might not be related to the point mentioned before, but the
+		camera movement for when we reset our player position seems really janky. We may just switch
+		the motion to snap since we don't really need to see the camera move from where they died /
+		were, to their spawn point, so that could be an easy fix.
 		
 - Always refactor for better architecture, but also get things working first.
 
@@ -36,8 +37,8 @@ TODO LIST
 - Figure out some way we can store the world data to represent it within the game. That way we
   have save the "levels" in some file format somewhere in the game's data folder, and read from that.
 - Conventionally, if we did store things in a screen-by-screen format (kinda like Animal Well), then
-  we would be able to represent things easily in a simple array of integers, where 0's can be air spaces,
-  1's are tiles, 2's are static spikes, etc.
+  we would be able to represent things easily in a simple array of integers, where 0's can be air
+  spaces, 1's are tiles, 2's are static spikes, etc.
 
 - We can get our hotloader functionality put into the game, along with some configuration file
   that gets read from / written to to save user config options.

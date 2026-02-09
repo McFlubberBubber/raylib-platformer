@@ -163,7 +163,7 @@ static void handle_controls_page_interactions(Menu *menu, Game *game) {
 static void process_menu_inputs(Menu *menu, Game *game) {
 	// First check if there are any page / state changes.
 	if (IsKeyPressed(KEY_ESCAPE)) {
-		if (menu->current_menu_page == PAGE_MAIN) {
+		if (menu->current_menu_page == PAGE_MAIN && game->state == GAME_MENU) {
 			push_command_change_state(game, GAME_WORLD);
 			return;
 		}

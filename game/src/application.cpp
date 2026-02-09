@@ -52,11 +52,11 @@ void init_app(Application *app) {
 	}
 	}
 	
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(app->width, app->height, app->title);
 	app->monitor = GetCurrentMonitor();
 	app->monitor_width  = GetMonitorWidth(app->monitor);
 	app->monitor_height = GetMonitorHeight(app->monitor);
-
 	
 	switch (app->display_mode) {
 	case WINDOWED_MODE: {
@@ -108,7 +108,7 @@ void draw_app(Application *app) {
 	EndTextureMode();
 
 	BeginDrawing();
-	ClearBackground(BLACK); // Letterboxing color.
+	ClearBackground(WHITE); // Letterboxing color (white for temp).
 	Rectangle src;
 	src.x = 0;
 	src.y = 0;

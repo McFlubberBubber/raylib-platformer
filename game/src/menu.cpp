@@ -259,9 +259,9 @@ static void process_menu_inputs(Menu *menu, Game *game) {
 static void draw_opening_main_page(Menu *menu) {
 	// @TODO: Find a custom font that we can use so that we don't need to rely on raylib's
 	// default font.
-	Application *app = Application::instance;
-	const int game_width  = app->game_width;
-	const int game_height = app->game_height;
+	// Application *app = Application::instance;
+	const int game_width  = g_app->game_width;
+	const int game_height = g_app->game_height;
 
 	// Drawing the main title of the game (still in placeholder).
 	const char *title = "PLACEHOLDER NAME";
@@ -311,9 +311,9 @@ static void draw_opening_main_page(Menu *menu) {
 }
 
 static void draw_paused_menu(Menu *menu) {
-	Application *app = Application::instance;
-	const int game_width  = app->game_width;
-	const int game_height = app->game_height;
+	// Application *app = Application::instance;
+	const int game_width  = g_app->game_width;
+	const int game_height = g_app->game_height;
 	
 	const char *title   = "PAUSED";
 	const int font_size = 40;
@@ -358,9 +358,9 @@ static void draw_paused_menu(Menu *menu) {
 // opening menu or paused versions (handled by 'state' member in the game struct).
 static void draw_settings_page(Menu *menu) {
 	// Getting access to the application since we will be changing it's members and stuff.
-	Application *app = Application::instance;
-	const int game_width  = app->game_width;
-	const int game_height = app->game_height;
+	// Application *app = Application::instance;
+	const int game_width  = g_app->game_width;
+	const int game_height = g_app->game_height;
 
 	const char *title   = "SETTINGS";
 	const int font_size = 40;
@@ -380,9 +380,9 @@ static void draw_settings_page(Menu *menu) {
 }
 
 static void draw_controls_page(Menu *menu) {
-	Application *app = Application::instance;
-	const int game_width  = app->game_width;
-	const int game_height = app->game_height;
+	// Application *app = Application::instance;
+	const int game_width  = g_app->game_width;
+	const int game_height = g_app->game_height;
 
 	const char *title   = "CONTROLS";
 	const int font_size = 40;
@@ -418,8 +418,8 @@ void draw_opening_menu(Menu *menu) {
 void draw_in_game_menu(Menu *menu) {
 	// @NOTE: We skip on clearing background since we also draw a frame of the game environment
 	// as the background. But we do draw this low opacitiy rect.
-	Application *app = Application::instance;
-	Rectangle bg  = { 0, 0, (float)app->game_width, (float)app->game_height };
+	// Application *app = Application::instance;
+	Rectangle bg  = { 0, 0, (float)g_app->game_width, (float)g_app->game_height };
 	Color overlay = { 0, 0, 0, 190 };
 	DrawRectangleRec(bg, overlay);
 

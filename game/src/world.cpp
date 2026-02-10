@@ -35,9 +35,9 @@ static void init_some_tiles(World *world) {
 }
 
 void init_world(World *world) {
-	Application *app = Application::instance;
-	world->screen_width		    = app->game_width;
-	world->screen_height	    = app->game_height;
+	// Application *app = Application::instance;
+	world->screen_width		    = g_app->game_width;
+	world->screen_height	    = g_app->game_height;
 	world->current_screen_index = 0;
 	world->total_screens        = 10;
 

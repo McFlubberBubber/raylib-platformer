@@ -5,6 +5,9 @@
 #include "platformer.h"
 #include "assets.h"
 
+struct Application;
+extern Application *g_app;
+
 enum DisplayMode {
 	WINDOWED_MODE = 0,
 	FULLSCREEN_MODE,
@@ -22,8 +25,6 @@ enum ResolutionType {
 };
 	
 struct Application {
-	static Application *instance; // Singleton stuff. 
-	
 	const char *title = "Platformer";
 	ResolutionType res = _1280x720_;
 #if 1

@@ -5,7 +5,7 @@
 #include "application.h" // For accessing the app state.
 
 static void draw_debug_overlay(Game *game) {
-	Application *app = Application::instance;
+	// Application *app = Application::instance;
 
 	DrawFPS(0, 0);
 
@@ -13,8 +13,8 @@ static void draw_debug_overlay(Game *game) {
 	constexpr int font_size = 18;
 	constexpr int text_x    = 0;
 	constexpr int text_y    = 20;
-	const int center_x      = app->game_width  / 2;
-	const int center_y      = app->game_height / 2;
+	const int center_x      = g_app->game_width  / 2;
+	const int center_y      = g_app->game_height / 2;
 	
 	char state_text[32];
 	switch(player->state) {
@@ -142,14 +142,14 @@ static void draw_game_environment(Game *game) {
 }
 
 static void init_camera(Camera2D *camera) {
-	Application *app = Application::instance;
+	// Application *app = Application::instance;
 	// Camera offset (displacement from target)
 	camera->target.x = 0; 
 	camera->target.y = 0;
 
 	// Camera target (rotation and zoom origin)
-    camera->offset.x = app->game_width  / 2;
-    camera->offset.y = app->game_height / 2;
+    camera->offset.x = g_app->game_width  / 2;
+    camera->offset.y = g_app->game_height / 2;
 
     camera->rotation = 0;
     camera->zoom     = 1.0f;
@@ -273,7 +273,7 @@ void process_command_list(Game *game) {
 			break;
 		}
 		case CMD_QUIT_GAME: {
-			Application::instance->should_close = true;
+			g_app->should_close = true;
 			break;
 		}
 		}

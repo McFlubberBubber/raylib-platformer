@@ -2,6 +2,8 @@
 
 #include "iostream"
 
+AssetManager *g_asset_manager = nullptr;
+
 static void load_all_sounds(AssetManager *asset_manager, const char *base) {
 	char full_path[256];
 	const char *paths[] = {
@@ -21,7 +23,6 @@ static void load_all_sounds(AssetManager *asset_manager, const char *base) {
 void load_all_assets(AssetManager *asset_manager) {
 	// @TODO: We have some temporary sounds that we want to test first, but we
 	// will be loading textures and fonts + other stuff later...
-
 	InitAudioDevice();
 
 	const char *base = GetApplicationDirectory();
@@ -30,21 +31,22 @@ void load_all_assets(AssetManager *asset_manager) {
 	// load_all_fonts(asset_manager, base);
 }
 
-void unload_all_assets(AssetManager *asset_manager) {
-	CloseAudioDevice();
-}
+void unload_all_assets(AssetManager *asset_manager) { CloseAudioDevice(); }
 
-Texture2D *get_texture_from_id(AssetManager *asset_manager, TextureID id) {
+Texture2D *get_texture(TextureID id) {
+	assert(g_asset_manager != nullptr);
 	assert(id >= 0 && id < TEXTURE_COUNT);
-	return &asset_manager->textures[id];
+	return &g_asset_manager->textures[id];
 }
 
-Sound *get_sound_from_id(AssetManager *asset_manager, SoundID id) {
+Sound *get_sound(SoundID id) {
+	assert(g_asset_manager != nullptr);
 	assert(id >= 0 && id < SOUND_COUNT);
-	return &asset_manager->sounds[id];
+	return &g_asset_manager->sounds[id];
 }
 
-Font *get_font_from_id(AssetManager *asset_manager, FontID id) {
+Font *get_font(FontID id) {
+	assert(g_asset_manager != nullptr);
 	assert(id >= 0 && id < FONT_COUNT);
-	return &asset_manager->fonts[id];
+	return &g_asset_manager->fonts[id];
 }

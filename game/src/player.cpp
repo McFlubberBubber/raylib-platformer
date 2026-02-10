@@ -38,8 +38,7 @@ static void check_horizontal_collisions(Player *player, World *world) {
 }
 
 void init_player(Player *player) {
-	Application *app = Application::instance;
-	int center_x = app->game_width / 2;
+	int center_x = g_app->game_width / 2;
 
 	player->pos.x = 0;
 	player->pos.y = 0;
@@ -98,8 +97,7 @@ void update_player(Player *player, World *world) {
 
 		// @TODO: This code SUCKS to type. We may just make a global pointer to the
 		// asset_manager because wtf is this.
-		AssetManager *asset_manager = &Application::instance->asset_manager;
-		Sound *jump_sound = get_sound_from_id(asset_manager, SOUND_PLAYER_JUMP);
+		Sound *jump_sound = get_sound(SOUND_PLAYER_JUMP);
 		float pitch = (float)(GetRandomValue(80, 100) / 100.0f);
 		SetSoundPitch(*jump_sound, pitch);
 		PlaySound(*jump_sound);

@@ -1,6 +1,6 @@
 #include "application.h"
 
-Application *Application::instance = nullptr;
+Application *g_app = nullptr;
 
 static void calculate_game_viewport(Application *app) {
 	const float game_aspect_ratio   = (float)app->game_width / (float)app->game_height;
@@ -27,7 +27,7 @@ static void calculate_game_viewport(Application *app) {
 }
 
 void init_app(Application *app) {
-	Application::instance = app;
+	g_app = app;
 	// Setting window size based on user preference (should be loaded from a config eventually).
 	switch (app->res) {
 	case _1280x720_: {
@@ -90,7 +90,9 @@ void init_app(Application *app) {
 	SetTextureFilter(app->game_render_target.texture, TEXTURE_FILTER_BILINEAR);
 	calculate_game_viewport(app);
 
+	g_asset_manager = &app->asset_manager;
 	load_all_assets(&app->asset_manager);
+	
 	init_game(&app->game);
 	
 	return;
@@ -124,7 +126,9 @@ void draw_app(Application *app) {
 }
 
 void shutdown_app(Application *app) {
-	Application::instance = nullptr;
+	g_app = nullptr;
+	g_asset_manager = nullptr;
+	
 	unload_all_assets(&app->asset_manager); // This also closes the raylib audio device.
 	CloseWindow();
 }

@@ -4,6 +4,9 @@
 #include "raylib.h" // For definitions of asset structs
 #include <assert.h>
 
+struct AssetManager;
+extern AssetManager *g_asset_manager;
+
 enum TextureID {
 	TEXTURE_TEMP = 0,
 	
@@ -32,8 +35,8 @@ void load_all_assets(AssetManager *asset_manager);
 void unload_all_assets(AssetManager *asset_manager);
 
 // Utility functions.
-Texture2D *get_texture_from_id(AssetManager *asset_manager, TextureID id);
-Sound     *get_sound_from_id(AssetManager *asset_manager, SoundID   id);
-Font      *get_font_from_id(AssetManager *asset_manager, FontID    id);
+Texture2D *get_texture(TextureID id);
+Sound     *get_sound(SoundID id);
+Font      *get_font(FontID id);
 
 #endif

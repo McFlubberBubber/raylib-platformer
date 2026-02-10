@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "platformer.h"
+#include "assets.h"
 
 enum DisplayMode {
 	WINDOWED_MODE = 0,
@@ -44,6 +45,7 @@ struct Application {
 	bool should_close;
 
 	Game game;
+	AssetManager asset_manager;
 };
 
 void init_app(Application *app);

@@ -95,6 +95,14 @@ void update_player(Player *player, World *world) {
 		player->vel.y 		= jump_force;
 		player->is_grounded = false;
 		player->coyote      = 0.0f;
+
+		// @TODO: This code SUCKS to type. We may just make a global pointer to the
+		// asset_manager because wtf is this.
+		AssetManager *asset_manager = &Application::instance->asset_manager;
+		Sound *jump_sound = get_sound_from_id(asset_manager, SOUND_PLAYER_JUMP);
+		float pitch = (float)(GetRandomValue(80, 100) / 100.0f);
+		SetSoundPitch(*jump_sound, pitch);
+		PlaySound(*jump_sound);
 	}
 	
 	if (!player->is_grounded) player->vel.y += gravity * dt;

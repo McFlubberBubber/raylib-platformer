@@ -90,6 +90,7 @@ void init_app(Application *app) {
 	SetTextureFilter(app->game_render_target.texture, TEXTURE_FILTER_BILINEAR);
 	calculate_game_viewport(app);
 
+	load_all_assets(&app->asset_manager);
 	init_game(&app->game);
 	
 	return;
@@ -124,5 +125,6 @@ void draw_app(Application *app) {
 
 void shutdown_app(Application *app) {
 	Application::instance = nullptr;
+	unload_all_assets(&app->asset_manager); // This also closes the raylib audio device.
 	CloseWindow();
 }

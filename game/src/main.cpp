@@ -16,6 +16,7 @@ int main() {
 	init_app(&app);
 
 	while (!WindowShouldClose() && !app.should_close) {
+		// @TODO: Should we have a seperate function here that processes input? process_input(&app);
 		update_app(&app);
 		draw_app(&app);
 	}

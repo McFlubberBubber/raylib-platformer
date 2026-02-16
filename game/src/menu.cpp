@@ -419,13 +419,17 @@ void draw_in_game_menu(Menu *menu) {
 	// @NOTE: We skip on clearing background since we also draw a frame of the game environment
 	// as the background. But we do draw this low opacitiy rect.
 	// Application *app = Application::instance;
-	Rectangle bg  = { 0, 0, (float)g_app->game_width, (float)g_app->game_height };
-	Color overlay = { 0, 0, 0, 190 };
-	DrawRectangleRec(bg, overlay);
+	BeginBlendMode(BLEND_MULTIPLIED);
 
-	Color vignette = { 0, 0, 0, 50 };
-	DrawRectangleRec(bg, vignette);
-	
+	Rectangle bg  = { 0, 0, (float)g_app->game_width, (float)g_app->game_height };
+#if 0
+	Color overlay = { 0, 0, 0, 190 };
+#else
+	Color overlay = { 0, 0, 0, 200 };
+#endif
+	DrawRectangleRec(bg, overlay);	
+	EndBlendMode();
+
 	switch (menu->current_menu_page) {
 	case PAGE_MAIN: {
 		draw_paused_menu(menu);

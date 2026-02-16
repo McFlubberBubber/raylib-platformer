@@ -6,10 +6,10 @@
 
 // @Temp: just to put some tiles on the screen for testing.
 static void init_some_tiles(World *world) {
-	constexpr float tile_width  = 40.0f;
-	constexpr float tile_height = tile_width;
-	constexpr int   tile_count  = 100; 
-	constexpr int   starting_x  = -650;  // Start from the left.
+	const float tile_width  = 40.0f;
+	const float tile_height = tile_width;
+	const int   tile_count  = 100; 
+	const int   starting_x  = -650;  // Start from the left.
 	const     int   starting_y  = 310;
 	
 	// Pushing new tiles into the array.
@@ -49,7 +49,7 @@ void update_world(World *world, Player *player, Camera2D *camera) {
 	const float left_boundary  = camera->target.x - (world->screen_width / 2.0f);
 	const float right_boundary = camera->target.x + (world->screen_width / 2.0f);
 	const float player_center  = player->pos.x + (player->sprite.width / 2);
-	constexpr float buffer     = 2.0f;
+	const float buffer     = 2.0f;
 	int target = world->current_screen_index;
 	
 	if (player_center > right_boundary + buffer &&
@@ -66,7 +66,7 @@ void update_world(World *world, Player *player, Camera2D *camera) {
 	}
 
 	// Transition for the camera.
-	constexpr float lerp_speed = 12.0f;
+	const float lerp_speed = 12.0f;
 	float target_camera_x = target * world->screen_width;
 	float dt = GetFrameTime();
 
@@ -75,7 +75,7 @@ void update_world(World *world, Player *player, Camera2D *camera) {
 }
 
 void draw_world(World *world) {
-	constexpr float line_thickness = 2.0f; 
+	const float line_thickness = 2.0f; 
 	for (auto &t : world->tiles) {
 		DrawRectangleLinesEx(t.rect, line_thickness, BLUE);
 	}

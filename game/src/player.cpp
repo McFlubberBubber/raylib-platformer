@@ -63,9 +63,7 @@ void init_player(Player *player) {
 // seperate file that is dedicated to responsing to inputs since we want to take inputs from a
 // lot of places (opening menu, main menu, the different pages within them, then within the game
 // world, also in the editor, so on).
-void update_player(Player *player, World *world) {
-	float dt = GetFrameTime();
-
+void update_player(Player *player, World *world, float dt) {
 	// These value are usually the inverse, but because of OpenGL / raylib rendering, the y
 	// starts at the top, meaning if we want to jump to go up, we need to minus the screen space
 	// coords.
@@ -95,12 +93,8 @@ void update_player(Player *player, World *world) {
 		player->is_grounded = false;
 		player->coyote      = 0.0f;
 
-		// @TODO: This code SUCKS to type. We may just make a global pointer to the
-		// asset_manager because wtf is this.
-		Sound *jump_sound = get_sound(SOUND_PLAYER_JUMP);
-		float pitch = (float)(GetRandomValue(80, 100) / 100.0f);
-		SetSoundPitch(*jump_sound, pitch);
-		PlaySound(*jump_sound);
+		float pitch = (float)(GetRandomValue(70, 90) / 100.0f);
+		play_sound_with_pitch(SOUND_PLAYER_JUMP, pitch);
 	}
 	
 	if (!player->is_grounded) player->vel.y += gravity * dt;

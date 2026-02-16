@@ -1,5 +1,7 @@
 #include "application.h"
 
+#include "raymath.h" // For Clamp()
+
 Application *g_app = nullptr;
 
 static void calculate_game_viewport(Application *app) {
@@ -52,12 +54,12 @@ void init_app(Application *app) {
 	}
 	}
 	
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
 	InitWindow(app->width, app->height, app->title);
 	app->monitor = GetCurrentMonitor();
 	app->monitor_width  = GetMonitorWidth(app->monitor);
 	app->monitor_height = GetMonitorHeight(app->monitor);
-	
+
 	switch (app->display_mode) {
 	case WINDOWED_MODE: {
 		// Already initialized...
@@ -99,15 +101,27 @@ void init_app(Application *app) {
 }
 
 void update_app(Application *app) {
+	app->dt = GetFrameTime();
+	app->dt = Clamp(app->dt, 0.0f, (1.0f / 30.0f));
+
 	if (app->should_close) return;
-	
-	update_game(&app->game);
+	if (IsWindowResized()) {
+		app->width  = GetRenderWidth();
+		app->height = GetRenderHeight();
+		calculate_game_viewport(app);
+	}
+
+	update_game(&app->game, app->dt);
 }
 
 void draw_app(Application *app) {
 	BeginTextureMode(app->game_render_target);
 	ClearBackground(RAYWHITE);
+	// BeginBlendMode(BLEND_ALPHA);
+
 	draw_game(&app->game);
+	
+	// EndBlendMode();
 	EndTextureMode();
 
 	BeginDrawing();

@@ -50,3 +50,15 @@ Font *get_font(FontID id) {
 	assert(id >= 0 && id < FONT_COUNT);
 	return &g_asset_manager->fonts[id];
 }
+
+// This is a wrapper function around raylib's PlaySound().
+void play_sound(SoundID id) {
+	Sound *sound = get_sound(id);
+	PlaySound(*sound);
+}
+
+void play_sound_with_pitch(SoundID id, float pitch) {
+	Sound *sound = get_sound(id);
+	SetSoundPitch(*sound, pitch);
+	PlaySound(*sound);
+}

@@ -161,7 +161,7 @@ void init_game(Game *game) {
 	init_player(&game->player);
 }
 
-void update_game(Game *game) {
+void update_game(Game *game, float dt) {
 	game->command_count = 0;
 
 	// Handle global inputs (toggling debug overlay, console, special dev hotkeys?).
@@ -188,7 +188,7 @@ void update_game(Game *game) {
 		}
 		
 		update_world(&game->world, &game->player, &game->camera);
-		update_player(&game->player, &game->world);
+		update_player(&game->player, &game->world, dt);
 		break;
 	}
 	case GAME_EDITOR: {

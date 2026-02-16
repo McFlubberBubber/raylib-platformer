@@ -47,7 +47,7 @@ struct Game {
 };
 
 void init_game(Game *game);
-void update_game(Game *game);
+void update_game(Game *game, float dt);
 void draw_game(Game *game);
 
 // Stuff relating to the application / game commands.

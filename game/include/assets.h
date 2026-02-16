@@ -39,4 +39,7 @@ Texture2D *get_texture(TextureID id);
 Sound     *get_sound(SoundID id);
 Font      *get_font(FontID id);
 
+void play_sound(SoundID id);
+void play_sound_with_pitch(SoundID id, float pitch);
+
 #endif

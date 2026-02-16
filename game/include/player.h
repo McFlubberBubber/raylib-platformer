@@ -38,7 +38,7 @@ struct Player {
 };
 
 void init_player(Player *player);
-void update_player(Player *player, World *world);
+void update_player(Player *player, World *world, float dt);
 void draw_player(Player *player);
 
 #endif

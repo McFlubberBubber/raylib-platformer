@@ -2,14 +2,17 @@
 TODO LIST
 =========
 
-- @BUG: Since dragging the window around blocks the events it receives, it actually results
-		in breaking our game code as the player sometimes clips out of the screen and just
-		teleports to some random value.
 - @BUG: Ever since we made the changes to render the game through the texture, there is this weird
 		bug that has popped up that might not be related to the point mentioned before, but the
 		camera movement for when we reset our player position seems really janky. We may just switch
 		the motion to snap since we don't really need to see the camera move from where they died /
 		were, to their spawn point, so that could be an easy fix.
+
+- @BUG: Right now, we fixed the weird collision stuff that was occuring with dt spikes, but now we
+		have another issue which the input states are messed up. This probably means we need to pull
+		out our input handling outside of the update() functions and instead have a whole function
+		dedicated to processing the input states in our main loop to ensure things are not latched
+		together. Therefore we have the following cycle: input handling -> updating -> drawing.
 		
 - Always refactor for better architecture, but also get things working first.
 

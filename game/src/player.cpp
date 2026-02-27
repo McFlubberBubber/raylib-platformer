@@ -9,7 +9,11 @@
 // even on the same screen, etc.
 static void check_vertical_collisions(Player *player, World *world) {
 	player->is_grounded = false;
+#if 0
 	for (auto &tile : world->tiles) {
+#else
+	for (auto &tile : world->screens[world->current_screen_index].tiles) {
+#endif
 		if (CheckCollisionRecs(player->sprite, tile.rect)) {
 			if (player->vel.y > 0) { // Hitting the ground.
 				player->pos.y = tile.rect.y - player->sprite.height;
@@ -25,7 +29,12 @@ static void check_vertical_collisions(Player *player, World *world) {
 }
 
 static void check_horizontal_collisions(Player *player, World *world) {
+
+#if 0
 	for (auto &tile : world->tiles) {
+#else
+	for (auto &tile : world->screens[world->current_screen_index].tiles) {
+#endif
 		if (CheckCollisionRecs(player->sprite, tile.rect)) {
 			if (player->vel.x > 0) { // Moving right.
 				player->pos.x = tile.rect.x - player->sprite.width;

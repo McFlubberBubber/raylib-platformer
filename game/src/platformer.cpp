@@ -5,14 +5,12 @@
 #include "application.h" // For accessing the app state.
 
 static void draw_debug_overlay(Game *game) {
-	// Application *app = Application::instance;
-
 	DrawFPS(0, 0);
 
-	auto player = &game->player;
-	constexpr int font_size = 18;
-	constexpr int text_x    = 0;
-	constexpr int text_y    = 20;
+	Player *player = &game->player;
+	const int font_size = 18;
+	const int text_x    = 0;
+	const int text_y    = 20;
 	const int center_x      = g_app->game_width  / 2;
 	const int center_y      = g_app->game_height / 2;
 	
@@ -109,9 +107,15 @@ static void draw_debug_overlay(Game *game) {
 	}
 	}
 	DrawText(menu_page, text_x, (text_y + (font_size * 5)), font_size, WHITE);
+}
 
+static void draw_ui(Game *game) {
+	const int font_size = 18;
+	const int center_x      = g_app->game_width  / 2;
+	const int center_y      = g_app->game_height / 2;
+	
 
-	// Drawing death screen. @TODO: This is NOT debug overlay, this is genuine UI.
+	Player *player = &game->player;
 	if (player->health == 0) {
 		const char *death = "YOU ARE DEAD.";
 		int width = MeasureText(death, font_size * 2);
@@ -123,6 +127,22 @@ static void draw_debug_overlay(Game *game) {
 		width = MeasureText(reset, font_size);
 		x = center_x - (width / 2);
 		DrawText(reset, x, y + (font_size * 2), font_size, WHITE);
+	}
+	
+}
+
+static void handle_global_inputs(Game *game) {
+	if (IsKeyPressed(KEY_F1)) {
+		push_command_simple(game, CMD_TOGGLE_DEBUG_MODE);
+	}
+	
+	// Console stuff
+	if (IsKeyPressed(KEY_GRAVE)) { // Tilda key.
+		if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
+			push_command_simple(game, CMD_TOGGLE_BIG_CONSOLE);
+		} else {
+			push_command_simple(game, CMD_TOGGLE_SMALL_CONSOLE);
+		}
 	}
 }
 
@@ -138,26 +158,12 @@ static void draw_game_environment(Game *game) {
 	EndMode2D();
 
 	// Drawing UI things using screen space.
-	// draw_ui(game);
-}
-
-static void init_camera(Camera2D *camera) {
-	// Application *app = Application::instance;
-	// Camera offset (displacement from target)
-	camera->target.x = 0; 
-	camera->target.y = 0;
-
-	// Camera target (rotation and zoom origin)
-    camera->offset.x = g_app->game_width  / 2;
-    camera->offset.y = g_app->game_height / 2;
-
-    camera->rotation = 0;
-    camera->zoom     = 1.0f;
+	draw_ui(game);
 }
 
 void init_game(Game *game) {
 	init_camera(&game->camera);
-	init_world(&game->world);
+	init_world(&game->world, &game->camera);
 	init_player(&game->player);
 }
 
@@ -165,7 +171,7 @@ void update_game(Game *game, float dt) {
 	game->command_count = 0;
 
 	// Handle global inputs (toggling debug overlay, console, special dev hotkeys?).
-	// handle_global_inputs(game);
+	handle_global_inputs(game);
 	
 	switch (game->state) {
 	case GAME_OPENING_MENU: {
@@ -187,7 +193,8 @@ void update_game(Game *game, float dt) {
 			push_command_change_state(game, GAME_MENU);
 		}
 		
-		update_world(&game->world, &game->player, &game->camera);
+		update_world(&game->world, &game->player, &game->camera, dt);
+		// update_camera(&game->camera);
 		update_player(&game->player, &game->world, dt);
 		break;
 	}
@@ -227,7 +234,13 @@ void draw_game(Game *game) {
 		
 	}
 
-	draw_debug_overlay(game);
+	// @Dev 
+	if (game->debug_mode) {
+		draw_debug_overlay(game);
+	}
+
+	draw_console(&game->console);
+	
 }
 
 void push_command_simple(Game *game, CommandType type) {
@@ -274,6 +287,31 @@ void process_command_list(Game *game) {
 		}
 		case CMD_QUIT_GAME: {
 			g_app->should_close = true;
+			break;
+		}
+		case CMD_TOGGLE_DEBUG_MODE: {
+			game->debug_mode = !game->debug_mode;
+			printf("Toggling debug mode\n");
+			break;
+		}
+		case CMD_TOGGLE_BIG_CONSOLE: {
+			if (game->console.state != CONSOLE_OPEN_BIG) {
+				game->console.state = CONSOLE_OPEN_BIG;
+				printf("Toggling console state: CONSOLE_OPEN_BIG\n");
+			} else {
+				game->console.state = CONSOLE_CLOSED;
+				printf("Toggling console state: CONSOLE_CLOSED\n");
+			}
+			break;
+		}
+		case CMD_TOGGLE_SMALL_CONSOLE: {
+			if (game->console.state != CONSOLE_OPEN_SMALL) {
+				game->console.state = CONSOLE_OPEN_SMALL;
+				printf("Toggling console state: CONSOLE_OPEN_SMALL\n");
+			} else {
+				game->console.state = CONSOLE_CLOSED;
+				printf("Toggling console state: CONSOLE_CLOSED\n");
+			}
 			break;
 		}
 		}

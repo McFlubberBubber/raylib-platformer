@@ -6,6 +6,8 @@
 #include "menu.h"
 #include "world.h"
 #include "player.h"
+#include "camera.h"
+#include "console.h"
 
 const int MAX_COMMAND_COUNT = 16;
 
@@ -25,6 +27,10 @@ enum CommandType {
 	CMD_RESET_GAME,
 	CMD_QUIT_GAME,
 
+	CMD_TOGGLE_DEBUG_MODE,
+	CMD_TOGGLE_BIG_CONSOLE,
+	CMD_TOGGLE_SMALL_CONSOLE,
+	
 	CMD_COUNT
 };
 
@@ -44,6 +50,10 @@ struct Game {
 	World world;
 	Player player;
 	Camera2D camera;
+
+	Console console;
+
+	bool debug_mode = false;
 };
 
 void init_game(Game *game);

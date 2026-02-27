@@ -46,9 +46,8 @@ struct Application {
 	bool should_close;
 
 	Game game;
-	float dt; // Delta time.
-
 	AssetManager asset_manager;
+	float dt; // Delta time.
 };
 
 void init_app(Application *app);

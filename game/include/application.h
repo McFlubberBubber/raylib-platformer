@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "platformer.h"
+#include "input.h"
 #include "assets.h"
 
 struct Application;
@@ -46,6 +47,8 @@ struct Application {
 	bool should_close;
 
 	Game game;
+	Input input;
+
 	AssetManager asset_manager;
 	float dt; // Delta time.
 };

@@ -3,6 +3,7 @@
 
 #include <stdio.h> 		 // For printing stuff. 
 #include "application.h" // For accessing the app state.
+#include "input.h"       // Input-handling...
 
 static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
@@ -131,21 +132,6 @@ static void draw_ui(Game *game) {
 	
 }
 
-static void handle_global_inputs(Game *game) {
-	if (IsKeyPressed(KEY_F1)) {
-		push_command_simple(game, CMD_TOGGLE_DEBUG_MODE);
-	}
-	
-	// Console stuff
-	if (IsKeyPressed(KEY_GRAVE)) { // Tilda key.
-		if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
-			push_command_simple(game, CMD_TOGGLE_BIG_CONSOLE);
-		} else {
-			push_command_simple(game, CMD_TOGGLE_SMALL_CONSOLE);
-		}
-	}
-}
-
 static void draw_game_environment(Game *game) {
 	ClearBackground(BLACK);
 
@@ -167,12 +153,7 @@ void init_game(Game *game) {
 	init_player(&game->player);
 }
 
-void update_game(Game *game, float dt) {
-	game->command_count = 0;
-
-	// Handle global inputs (toggling debug overlay, console, special dev hotkeys?).
-	handle_global_inputs(game);
-	
+void update_game(Game *game, Input *input, float dt) {
 	switch (game->state) {
 	case GAME_OPENING_MENU: {
 		update_menu(&game->menu, game);
@@ -183,19 +164,16 @@ void update_game(Game *game, float dt) {
 		break;
 	}
 	case GAME_WORLD: {
-		// @TODO: Should these inputs get moved to a process_game_input()? We already track inputs
-		// for player movement through the update_player(), but other inputs like maybe
-		// inventory, pausing the game, and so on, could be moved here...
-		if (IsKeyPressed(KEY_R)) push_command_simple(game, CMD_RESET_GAME);
+		if (input->reset_game) push_command_simple(game, CMD_RESET_GAME);
 
-		if (IsKeyPressed(KEY_ESCAPE)) {
+		if (input->pause_game) {
 			game->menu.current_main_item = MAIN_START;
 			push_command_change_state(game, GAME_MENU);
 		}
 		
 		update_world(&game->world, &game->player, &game->camera, dt);
 		// update_camera(&game->camera);
-		update_player(&game->player, &game->world, dt);
+		update_player(&game->player, &game->world, input, dt);
 		break;
 	}
 	case GAME_EDITOR: {
@@ -205,8 +183,6 @@ void update_game(Game *game, float dt) {
 		break;
 	}
 	}
-
-	process_command_list(game);
 };
 
 void draw_game(Game *game) {

@@ -9,6 +9,7 @@
 */
 
 #include "raylib.h"
+#include "raymath.h" // For Clamp()
 #include "application.h"
 
 int main() {
@@ -16,8 +17,13 @@ int main() {
 	init_app(&app);
 
 	while (!WindowShouldClose() && !app.should_close) {
-		// @TODO: Should we have a seperate function here that processes input? process_input(&app);
+		app.dt = GetFrameTime();
+		app.dt = Clamp(app.dt, 0.0f, (1.0f / 30.0f));
+		app.game.command_count = 0; // Clearing the command queue.
+		
+		poll_input(&app);
 		update_app(&app);
+		process_command_list(&app.game);
 		draw_app(&app);
 	}
 

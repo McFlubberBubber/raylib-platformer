@@ -72,7 +72,7 @@ void init_player(Player *player) {
 // seperate file that is dedicated to responsing to inputs since we want to take inputs from a
 // lot of places (opening menu, main menu, the different pages within them, then within the game
 // world, also in the editor, so on).
-void update_player(Player *player, World *world, float dt) {
+void update_player(Player *player, World *world, Input* input, float dt) {
 	// These value are usually the inverse, but because of OpenGL / raylib rendering, the y
 	// starts at the top, meaning if we want to jump to go up, we need to minus the screen space
 	// coords.
@@ -87,17 +87,15 @@ void update_player(Player *player, World *world, float dt) {
 	constexpr float coyote_duration = 0.1f;    // 100ms grace.
 
 	if (player->health == 0) return;
-	
-	float horizontal = 0.0f;
-	if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))  horizontal = -1.0f;
-	if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) horizontal =  1.0f;
-	player->vel.x = horizontal * movement_speed;
+
+	// Reading from the input state.
+	player->vel.x = input->player_move_x * movement_speed;
 
 	if (player->is_grounded) player->coyote = coyote_duration;
 	else                     player->coyote -= dt;
 	bool can_jump = player->coyote > 0.0f;
-
-	if (can_jump && IsKeyPressed(KEY_SPACE)) {
+	
+	if (can_jump && input->player_jump) {
 		player->vel.y 		= jump_force;
 		player->is_grounded = false;
 		player->coyote      = 0.0f;
@@ -105,7 +103,7 @@ void update_player(Player *player, World *world, float dt) {
 		float pitch = (float)(GetRandomValue(70, 90) / 100.0f);
 		play_sound_with_pitch(SOUND_PLAYER_JUMP, pitch);
 	}
-	
+
 	if (!player->is_grounded) player->vel.y += gravity * dt;
 
 	// Handling horizontal movement first, then checking its collisions.
@@ -127,8 +125,11 @@ void update_player(Player *player, World *world, float dt) {
 	player->prev_state = player->state;
 	PlayerState new_state;
     
-	if (player->is_grounded) new_state = (horizontal != 0.0f)   ? PLAYER_MOVING  : PLAYER_IDLE;
-	else             		 new_state = (player->vel.y < 0.0f) ? PLAYER_JUMPING : PLAYER_FALLING;
+	if (player->is_grounded) {
+		new_state = (input->player_move_x != 0.0f) ? PLAYER_MOVING  : PLAYER_IDLE;
+	} else {
+		new_state = (player->vel.y < 0.0f) ? PLAYER_JUMPING : PLAYER_FALLING;
+	}
 
 	if (player->health <= 0) new_state = PLAYER_DEAD;
 	

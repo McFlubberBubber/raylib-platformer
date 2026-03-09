@@ -4,6 +4,7 @@
 #include "raylib.h"
 
 struct World;
+struct Input;
 
 enum PlayerState {
 	PLAYER_IDLE = 0,
@@ -38,7 +39,7 @@ struct Player {
 };
 
 void init_player(Player *player);
-void update_player(Player *player, World *world, float dt);
+void update_player(Player *player, World *world, Input *input, float dt);
 void draw_player(Player *player);
 
 #endif

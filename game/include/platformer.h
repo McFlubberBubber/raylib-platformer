@@ -9,6 +9,8 @@
 #include "camera.h"
 #include "console.h"
 
+struct Input;
+
 const int MAX_COMMAND_COUNT = 16;
 
 enum GameState {
@@ -57,7 +59,7 @@ struct Game {
 };
 
 void init_game(Game *game);
-void update_game(Game *game, float dt);
+void update_game(Game *game, Input *input, float dt);
 void draw_game(Game *game);
 
 // Stuff relating to the application / game commands.

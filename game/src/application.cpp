@@ -1,7 +1,5 @@
 #include "application.h"
 
-#include "raymath.h" // For Clamp()
-
 Application *g_app = nullptr;
 
 static void calculate_game_viewport(Application *app) {
@@ -101,9 +99,6 @@ void init_app(Application *app) {
 }
 
 void update_app(Application *app) {
-	app->dt = GetFrameTime();
-	app->dt = Clamp(app->dt, 0.0f, (1.0f / 30.0f));
-
 	if (app->should_close) return;
 	if (IsWindowResized()) {
 		app->width  = GetRenderWidth();
@@ -111,7 +106,7 @@ void update_app(Application *app) {
 		calculate_game_viewport(app);
 	}
 
-	update_game(&app->game, app->dt);
+	update_game(&app->game, &app->input, app->dt);
 }
 
 void draw_app(Application *app) {

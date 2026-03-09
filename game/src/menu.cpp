@@ -376,7 +376,7 @@ static void draw_settings_page(Menu *menu) {
 	char save[8];
 	char exit[8];
 
-	
+	// @TODO...
 }
 
 static void draw_controls_page(Menu *menu) {
@@ -389,9 +389,8 @@ static void draw_controls_page(Menu *menu) {
 	int text_width      = MeasureText(title, font_size);
 	int center_x        = (int)(game_width  / 2); 
 	int starting_y      = (int)(game_height * 0.2f);
-	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
-
 	
+	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
 }
 
 void draw_opening_menu(Menu *menu) {
@@ -417,7 +416,7 @@ void draw_opening_menu(Menu *menu) {
 
 void draw_in_game_menu(Menu *menu) {
 	// @NOTE: We skip on clearing background since we also draw a frame of the game environment
-	// as the background. But we do draw this low opacitiy rect.
+	// as the background. But we do draw this low opacity rect.
 	// Application *app = Application::instance;
 	BeginBlendMode(BLEND_MULTIPLIED);
 

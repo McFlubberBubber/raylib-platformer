@@ -60,10 +60,10 @@ static void draw_input_area(Console *console) {
 
 	// Specifications for the text and the cursor.
 	const char *text    = console->input.data;
-	const int x         = INPUT_X;
-	const int y         = INPUT_Y;
-	const int font_size = INPUT_HEIGHT;
-	const Color text_color = { 72, 200, 200, 200 };
+	const int x         = (int)INPUT_X + 6;
+	const int y         = (int)INPUT_Y;
+	const int font_size = (int)INPUT_HEIGHT - 6;
+	const Color text_color = { 50, 200, 100, 255 };
 
 	// Draw calls.
 	DrawRectangleRec(input_rect, input_bg_color);

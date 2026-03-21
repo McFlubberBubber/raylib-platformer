@@ -26,11 +26,13 @@ struct ConsoleInput {
 	char data[1024] = { 0 };
 	int length;
 
-	float height;
-
+	float height; // This is the height used for the rect in the input area.
+	
 	// Cursor-related things.
 	int cursor_pos;
 	float cursor_blink_time;
+
+	float key_timer;
 };
 
 struct Console {

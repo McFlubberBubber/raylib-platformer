@@ -51,4 +51,11 @@ void draw_in_game_menu(Menu *menu);
 
 void update_menu(Menu *menu, Game *game); // This is meant for processing inputs and changing states.
 
+// Utility functions.
+void navigate_menu_item(Menu *menu, bool go_forward);
+void    cycle_menu_item(Menu *menu, bool go_forward);
+
+void handle_menu_activations(Menu *menu);
+void handle_menu_escape_press(Menu *menu);
+
 #endif

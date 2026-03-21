@@ -21,7 +21,7 @@ int main() {
 		app.dt = Clamp(app.dt, 0.0f, (1.0f / 30.0f));
 		app.game.command_count = 0; // Clearing the command queue.
 		
-		poll_input(&app);
+		poll_inputs(&app);
 		update_app(&app);
 		process_command_list(&app.game);
 		draw_app(&app);

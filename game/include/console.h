@@ -1,6 +1,8 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
+#include "raylib.h"
+
 enum ConsoleLogType {
 	CONSOLE_LOG_COMMAND = 0,
 	CONSOLE_LOG_OUTPUT,
@@ -22,22 +24,25 @@ struct ConsoleLog {
 
 struct ConsoleInput {
 	char data[1024] = { 0 };
-	int length = 0;
+	int length;
+
+	float height;
+
+	// Cursor-related things.
+	int cursor_pos;
+	float cursor_blink_time;
 };
 
 struct Console {
 	ConsoleState state = CONSOLE_CLOSED;
 	int openness;
+	Rectangle rect;
 	
 	ConsoleInput input;
 	ConsoleLog *logs;
 
 	char **command_history;
 	int history_index = -1;
-
-	// Cursor-related things.
-	int cursor_pos;
-	float cursor_blink_time;
 
 	// @TODO: We need to put our actual commands that the console can look up in this struct aswell.
 	

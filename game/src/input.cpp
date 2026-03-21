@@ -22,11 +22,11 @@ static void handle_global_inputs(Application *app) {
 static void poll_console_inputs(Game *game) {
 	int character;
 	while ((character = GetCharPressed()) != 0) {
-		// insert_character(&game->console, character);
+		insert_character(&game->console, character);
 	}
 
 	if (IsKeyPressed(KEY_BACKSPACE)) {
-		// delete_character(&game->console);
+		delete_character(&game->console);
 	}
 
 	if (IsKeyPressed(KEY_ENTER)) {
@@ -34,7 +34,7 @@ static void poll_console_inputs(Game *game) {
 	}
 }
 
-void poll_input(Application *app) {
+void poll_inputs(Application *app) {
 	Input *input = &app->input;
 	handle_global_inputs(app);
 

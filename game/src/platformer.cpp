@@ -151,6 +151,8 @@ void init_game(Game *game) {
 	init_camera(&game->camera);
 	init_world(&game->world, &game->camera);
 	init_player(&game->player);
+
+	init_console(&game->console);
 }
 
 void update_game(Game *game, Input *input, float dt) {

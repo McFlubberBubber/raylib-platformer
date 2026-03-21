@@ -13,6 +13,6 @@ struct Input {
 	bool player_jump    = false;
 };
 
-void poll_input(Application *app);
+void poll_inputs(Application *app);
 
 #endif

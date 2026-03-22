@@ -59,24 +59,43 @@ static void draw_input_area(Console *console) {
 	const Color input_bg_color = { 18, 75, 75, 200 };
 
 	// Specifications for the text and the cursor.
-	const char *text    = console->input.data;
-	const int x         = (int)INPUT_X + 6;
-	const int y         = (int)INPUT_Y;
-	const int font_size = (int)INPUT_HEIGHT - 6;
+	const char *text       = console->input.data;
+	const int TEXT_X       = (int)INPUT_X + 6;
+	const int TEXT_Y       = (int)INPUT_Y;
+	const int FONT_SIZE    = (int)INPUT_HEIGHT - 6;
+	const int text_width   = MeasureText(text, FONT_SIZE);
 	const Color text_color = { 50, 200, 100, 255 };
+
+	const float CURSOR_X      = text_width + 10;
+	const float CURSOR_Y      = INPUT_Y + 8;
+	const float CURSOR_WIDTH  = 4.0f;
+	const float CURSOR_HEIGHT = FONT_SIZE - 10;
+	const Rectangle cursor_rect { CURSOR_X, CURSOR_Y, CURSOR_WIDTH, CURSOR_HEIGHT };
+	const Color cursor_color = text_color;
 
 	// Draw calls.
 	DrawRectangleRec(input_rect, input_bg_color);
-	DrawText(text, x, y, font_size, text_color);
+	DrawText(text, TEXT_X, TEXT_Y, FONT_SIZE, text_color);
+
+	// Cursor blink
+	float dt = g_app->dt;
+	console->input.cursor_blink_time += dt;
+	if (console->input.cursor_blink_time <= 1.0f) {
+		DrawRectangleRec(cursor_rect, cursor_color);
+	} else if (console->input.cursor_blink_time > 2.0f) {
+		console->input.cursor_blink_time = 0.0f;
+	}
 }
 
 void init_console(Console *console) {
 	console->rect = { 0.0f, 0.0f, (float)g_app->game_width, 0.0f };
 
 	// Input area initialization.
-	console->input.length     = 0;
-	console->input.height     = 50.0f;
-	console->input.cursor_pos = 0;
+	console->input.length = 0;
+	console->input.height = 50.0f;
+	
+	console->input.cursor_pos        = 0;
+	console->input.cursor_blink_time = 0.0f;
 	
 	// This is where we will load console arguments...
 }

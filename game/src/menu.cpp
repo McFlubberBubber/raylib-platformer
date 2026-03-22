@@ -12,11 +12,11 @@ static void do_main_page_activations(Menu *menu) {
 		break;
 	}
 	case MAIN_SETTINGS: {
-		menu->current_menu_page = PAGE_SETTINGS;
+		menu->current_page = PAGE_SETTINGS;
 		break;
 	}
 	case MAIN_CONTROLS: {
-		menu->current_menu_page = PAGE_CONTROLS;
+		menu->current_page = PAGE_CONTROLS;
 		break;
 	}
 	case MAIN_EXIT: {
@@ -64,7 +64,7 @@ static void do_settings_page_activations(Menu *menu) {
 
 		// 1. Check if settings state has been changed
 		// 2. If the settings have not changed, then allow the user to return to main.
-		menu->current_menu_page = PAGE_MAIN;
+		menu->current_page = PAGE_MAIN;
 		// 3. Else, if the settings have changed and the user has NOT saved them, then display:
 		// display_settings_warning();
 		// 4. Based on the input within the warning popup which are: Save / Discard Changes...
@@ -84,7 +84,7 @@ static void do_settings_page_activations(Menu *menu) {
 static void do_controls_page_activations(Menu *menu) {
 	switch (menu->current_controls_item) {
 	case CONTROLS_RETURN: {
-		menu->current_menu_page = PAGE_MAIN;
+		menu->current_page = PAGE_MAIN;
 		break;
 	}
 	default: {
@@ -232,7 +232,7 @@ static void draw_controls_page(Menu *menu) {
 
 void draw_opening_menu(Menu *menu) {
 	ClearBackground(BLACK); // Drawing a black BG for opening menu
-	switch (menu->current_menu_page) {
+	switch (menu->current_page) {
 	case PAGE_MAIN: {
 		draw_opening_main_page(menu);
 		break;
@@ -262,7 +262,7 @@ void draw_in_game_menu(Menu *menu) {
 	DrawRectangleRec(bg, overlay);	
 	EndBlendMode();
 
-	switch (menu->current_menu_page) {
+	switch (menu->current_page) {
 	case PAGE_MAIN: {
 		draw_paused_menu(menu);
 		break;
@@ -287,11 +287,9 @@ void update_menu(Menu *menu, Game *game) {
 }
 
 void navigate_menu_item(Menu *menu, bool go_forward) {
-	MenuPages current_page = menu->current_menu_page;
 	int current_item, total_items, prev_item;	
-
 	if (go_forward) {
-		switch (menu->current_menu_page) {
+		switch (menu->current_page) {
 		case PAGE_MAIN: {
 			current_item = static_cast<int>(menu->current_main_item);
 			total_items  = static_cast<int>(MAIN_COUNT);
@@ -316,7 +314,7 @@ void navigate_menu_item(Menu *menu, bool go_forward) {
 		}
 
 	} else {
-		switch (current_page) {
+		switch (menu->current_page) {
 		case PAGE_MAIN: {
 			current_item = static_cast<int>(menu->current_main_item);
 			total_items  = static_cast<int>(MAIN_COUNT);
@@ -359,7 +357,7 @@ void cycle_menu_item(Menu *menu, bool go_forward) {
 
 void handle_menu_activations(Menu *menu) {
 	// First check what page we are on, then handle each menu item seperately.
-	switch (menu->current_menu_page) {
+	switch (menu->current_page) {
 	case PAGE_MAIN: {
 		do_main_page_activations(menu);
 		break;
@@ -376,18 +374,18 @@ void handle_menu_activations(Menu *menu) {
 }
 
 void handle_menu_escape_press(Menu *menu) {
-	switch (menu->current_menu_page) {
+	switch (menu->current_page) {
 	case PAGE_MAIN: {
 		Game *game = &g_app->game;
 		push_command_change_state(game, GAME_WORLD);
 		break;
 	}
 	case PAGE_SETTINGS: {
-		menu->current_menu_page = PAGE_MAIN;
+		menu->current_page = PAGE_MAIN;
 		break;
 	}
 	case PAGE_CONTROLS: {
-		menu->current_menu_page = PAGE_MAIN;
+		menu->current_page = PAGE_MAIN;
 		break;
 	}
 	}

@@ -89,7 +89,7 @@ static void draw_debug_overlay(Game *game) {
 	DrawText(game_state, text_x, (text_y + (font_size * 4)), font_size, WHITE);
 
 	char menu_page[24];
-	switch(game->menu.current_menu_page) {
+	switch(game->menu.current_page) {
 	case PAGE_MAIN: {
 		snprintf(menu_page, sizeof(menu_page), "MENU_PAGE: MAIN");
 		break;

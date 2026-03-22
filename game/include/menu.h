@@ -39,7 +39,7 @@ enum ControlsPageItems {
 };
 
 struct Menu {
-	MenuPages current_menu_page = PAGE_MAIN;
+	MenuPages current_page = PAGE_MAIN;
 	
 	MainPageItems 	  current_main_item     = MAIN_START;
 	SettingsPageItems current_settings_item = SETTINGS_FULLSCREEN;

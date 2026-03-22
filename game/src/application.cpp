@@ -135,6 +135,7 @@ void draw_app(Application *app) {
 }
 
 void shutdown_app(Application *app) {
+	cleanup_game(&app->game);
 	g_app = nullptr;
 	g_asset_manager = nullptr;
 	

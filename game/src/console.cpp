@@ -6,11 +6,18 @@ inline static bool is_space(char c) {
 	return c == ' ' || c == '\t';
 }
 
-// Read-only globals for the console specs
+inline static void clear_input_area(Console *console) {
+	memset(console->input.data, 0, sizeof(console->input.data));
+
+	console->input.length            = 0;
+	console->input.cursor_pos 		 = 0;
+	console->input.cursor_blink_time = 0.0f;
+}
+
 static void update_openness(Console *console, float dt) {
 	// Openness relates to the actual pixels in y.
-	const int SMALL_OPENNESS_TARGET = (int)(g_app->game_height * 0.2f);
-	const int BIG_OPENNESS_TARGET   = (int)(g_app->game_height * 0.8f);
+	const int SMALL_OPENNESS_TARGET = (int)(g_app->game_height * 0.4f);
+	const int BIG_OPENNESS_TARGET   = (int)(g_app->game_height * 0.95f);
 	const float OPENNESS_DT         = 0.5f;
 	
 	int target_openness = 0;
@@ -92,16 +99,39 @@ static void draw_input_area(Console *console) {
 }
 
 void init_console(Console *console) {
+	// Member initialization.
+	console->is_initialized = true;
 	console->rect = { 0.0f, 0.0f, (float)g_app->game_width, 0.0f };
-
+	console->state = CONSOLE_CLOSED;
+	console->history_index = -1;
+																
 	// Input area initialization.
 	console->input.length = 0;
 	console->input.height = 50.0f;
 	
 	console->input.cursor_pos        = 0;
 	console->input.cursor_blink_time = 0.0f;
+
+	// Console arena stuff...
+	console->log_buffer.arena = (char *)malloc(CONSOLE_ARENA_SIZE);
+	if (!console->log_buffer.arena) {
+		// @TODO: Error diagnostic for no memory allocated.
+		console->is_initialized = false;
+	}
+	console->log_buffer.log_count = 0;
+	console->log_buffer.offset    = 0;
+	console->log_buffer.capacity  = CONSOLE_ARENA_SIZE;
+
+	console->history.arena = (char *)malloc(CONSOLE_HISTORY_SIZE);
+	if (!console->history.arena) {
+		// @TODO: Error diagnostic for no memory allocated.
+		console->is_initialized = false;
+	}
+	console->log_buffer.log_count = 0;
+	console->log_buffer.offset    = 0;
+	console->log_buffer.capacity  = CONSOLE_ARENA_SIZE;
 	
-	// This is where we will load console arguments...
+	// @TODO: Load up console arguments here.
 }
 
 void draw_console(Console *console) {
@@ -112,11 +142,19 @@ void draw_console(Console *console) {
 	draw_input_area(console);
 }
 
+void cleanup_console(Console *console) {
+	free(console->log_buffer.arena);
+	free(console->history.arena);
+	
+	console->log_buffer.arena = nullptr;
+	console->history.arena    = nullptr;
+}
+
 void insert_character(Console *console, int character) {
 	if (character == '`' || character == '~') return;
 
-	if (console->input.cursor_pos >= 1023) {
-		// @TODO: Error handling
+	if (console->input.cursor_pos >= (CONSOLE_INPUT_SIZE - 1)) {
+		// @TODO: Error handling.
 	} else {
 		int pos = console->input.cursor_pos;
 		
@@ -169,4 +207,44 @@ void delete_word(Console* console) {
 		console->input.length -= num_of_chars_to_delete;
 		console->input.cursor_blink_time = 0.0f;
 	}
+}
+
+void submit_command(Console *console) {
+	if (console->input.length == 0) return; 
+	char *command = console->input.data;
+	ConsoleLogType type = CONSOLE_LOG_COMMAND;
+
+	push_log(console, command, type);
+	// add_command_to_history(console, command);
+	// parse_and_tokenize(console, command);
+	clear_input_area(console);
+}
+
+void push_log(Console *console, const char *message, ConsoleLogType type) {
+
+	ConsoleLogBuffer *buffer = &console->log_buffer;
+	int message_length = strlen(message) + 1; // Accounting for the null terminator.
+
+	if ((buffer->offset + message_length) > buffer->capacity) {
+		// @TODO: Handle full arena.
+		return;
+	}
+	if (buffer->log_count >= CONSOLE_MAX_LOGS) {
+		// @TODO: Handle full log array.
+		return;
+	}
+
+	char *dest = &buffer->arena[buffer->offset];
+	memcpy(dest, message, message_length);
+	buffer->offset += message_length;
+
+	ConsoleLog *log = &buffer->logs[buffer->log_count++];
+	log->message = dest;
+	log->type    = type;
+
+#if 1
+	printf("Console received: %s | log_count: %d\n", log->message, console->log_buffer.log_count);
+#endif
+
+	return;
 }

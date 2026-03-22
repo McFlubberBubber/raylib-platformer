@@ -218,7 +218,10 @@ void draw_game(Game *game) {
 	}
 
 	draw_console(&game->console);
-	
+}
+
+void cleanup_game(Game *game) {
+	cleanup_console(&game->console);
 }
 
 void push_command_simple(Game *game, CommandType type) {

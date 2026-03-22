@@ -47,7 +47,7 @@ static void poll_console_inputs(Game *game) {
     }
 
 	if (IsKeyPressed(KEY_ENTER)) {
-		// submit_command(&game->console);
+		submit_command(&game->console);
 	}
 }
 

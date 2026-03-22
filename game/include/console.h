@@ -3,6 +3,13 @@
 
 #include "raylib.h"
 
+constexpr int CONSOLE_INPUT_SIZE = 512;
+constexpr int CONSOLE_ARENA_SIZE = (1024 * 64); // 64KB.
+constexpr int CONSOLE_MAX_LOGS   = 256;
+
+constexpr int CONSOLE_MAX_HISTORY  = 64;
+constexpr int CONSOLE_HISTORY_SIZE = (1024 * 64); // 64KB.
+
 enum ConsoleLogType {
 	CONSOLE_LOG_COMMAND = 0,
 	CONSOLE_LOG_OUTPUT,
@@ -22,8 +29,26 @@ struct ConsoleLog {
 	char *message;
 };
 
+struct ConsoleLogBuffer {
+	ConsoleLog logs[CONSOLE_MAX_LOGS];
+	int log_count;
+
+	char  *arena; // Heap-allocated.
+	int    offset;
+	size_t capacity;
+};
+
+struct ConsoleHistory {
+	char *entries[CONSOLE_MAX_HISTORY];
+	int   count;
+	
+	char  *arena; // Heap-allocated.
+	int    offset;
+	size_t capacity;
+};
+
 struct ConsoleInput {
-	char data[1024] = { 0 };
+	char data[CONSOLE_INPUT_SIZE] = { 0 };
 	int length;
 
 	float height; // This is the height used for the rect in the input area.
@@ -36,22 +61,24 @@ struct ConsoleInput {
 };
 
 struct Console {
-	ConsoleState state = CONSOLE_CLOSED;
+	ConsoleState state;
 	int openness;
 	Rectangle rect;
 	
 	ConsoleInput input;
-	ConsoleLog *logs;
+	ConsoleLogBuffer log_buffer;
+	ConsoleHistory history;
 
-	char **command_history;
-	int history_index = -1;
+	int history_index;
 
 	// @TODO: We need to put our actual commands that the console can look up in this struct aswell.
-	
+
+	bool is_initialized;
 };
 
 void init_console(Console *console);
 void draw_console(Console *console);
+void cleanup_console(Console *console);
 
 // Utilities.
 void insert_character(Console *console, int character);

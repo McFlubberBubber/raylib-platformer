@@ -61,6 +61,7 @@ struct Game {
 void init_game(Game *game);
 void update_game(Game *game, Input *input, float dt);
 void draw_game(Game *game);
+void cleanup_game(Game *game);
 
 // Stuff relating to the application / game commands.
 void push_command_simple(Game *game, CommandType type);

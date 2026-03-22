@@ -49,6 +49,7 @@ static void update_openness(Console *console, float dt) {
 }
 
 static void draw_logs(Console* console) {
+	// First, draw the rectangle that will contain the logs.
 	const float LOG_X 	   = console->rect.x;
     const float LOG_Y	   = console->rect.y;
 	const float LOG_WIDTH  = console->rect.width;
@@ -57,7 +58,41 @@ static void draw_logs(Console* console) {
 	Rectangle log_rect = { LOG_X, LOG_Y, LOG_WIDTH, LOG_HEIGHT };
 	Color log_bg_color = { 25, 25, 25, 255 };
 	
-	DrawRectangleRec(log_rect, log_bg_color);	
+	DrawRectangleRec(log_rect, log_bg_color);
+
+	// Then, draw the actual logs.
+	const int log_padding = 6;
+	const int log_count = console->log_buffer.log_count;
+	const int log_line_height = 36;
+
+	const int font_size = 32;
+	const int text_x    = LOG_X + log_padding;
+	int text_y          = LOG_Y + LOG_HEIGHT - font_size - log_padding;
+	Color text_color;
+
+	BeginScissorMode(LOG_X, LOG_Y, LOG_WIDTH, LOG_HEIGHT);
+
+	for (int i = log_count - 1; i >= 0; --i) {
+		if (text_y + font_size < LOG_Y + font_size) break;
+
+		ConsoleLog *log = &console->log_buffer.logs[i];
+		char *text = log->message; 
+
+		switch (log->type) {
+		case CONSOLE_LOG_COMMAND: { text_color = RAYWHITE; break; }
+		case CONSOLE_LOG_OUTPUT:  { text_color = GREEN;    break; }
+		case CONSOLE_LOG_ERROR:   { text_color = RED;      break; }
+		case CONSOLE_LOG_WARNING: { text_color = ORANGE;   break; }
+		case CONSOLE_LOG_INFO:    { text_color = RAYWHITE; break; }
+			
+		default: { text_color = RAYWHITE; break; } 
+		}
+		
+		DrawText(text, text_x, text_y, font_size, text_color);
+		text_y -= log_line_height;
+	}
+
+	EndScissorMode();
 }
 
 static void draw_input_area(Console *console) {
@@ -132,6 +167,12 @@ void init_console(Console *console) {
 	console->log_buffer.capacity  = CONSOLE_ARENA_SIZE;
 	
 	// @TODO: Load up console arguments here.
+
+	if (console->is_initialized) {
+		push_log(console, "This is the console. Type 'help' for more commands.", CONSOLE_LOG_INFO);
+	} else {
+		fprintf(stderr, "Console has not been initialized correctly!\n");
+	}
 }
 
 void draw_console(Console *console) {

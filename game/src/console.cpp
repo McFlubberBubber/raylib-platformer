@@ -2,6 +2,10 @@
 
 #include "application.h"
 
+inline static bool is_space(char c) {
+	return c == ' ' || c == '\t';
+}
+
 // Read-only globals for the console specs
 static void update_openness(Console *console, float dt) {
 	// Openness relates to the actual pixels in y.
@@ -68,16 +72,16 @@ static void draw_input_area(Console *console) {
 
 	const float CURSOR_X      = text_width + 10;
 	const float CURSOR_Y      = INPUT_Y + 8;
-	const float CURSOR_WIDTH  = 4.0f;
+	const float CURSOR_WIDTH  = 8.0f;
 	const float CURSOR_HEIGHT = FONT_SIZE - 10;
-	const Rectangle cursor_rect { CURSOR_X, CURSOR_Y, CURSOR_WIDTH, CURSOR_HEIGHT };
-	const Color cursor_color = text_color;
+	const Rectangle cursor_rect  = { CURSOR_X, CURSOR_Y, CURSOR_WIDTH, CURSOR_HEIGHT };
+	const Color cursor_color     = text_color;
 
-	// Draw calls.
+	// Draw calls below.
 	DrawRectangleRec(input_rect, input_bg_color);
 	DrawText(text, TEXT_X, TEXT_Y, FONT_SIZE, text_color);
 
-	// Cursor blink
+	// Cursor blink.
 	float dt = g_app->dt;
 	console->input.cursor_blink_time += dt;
 	if (console->input.cursor_blink_time <= 1.0f) {
@@ -125,13 +129,10 @@ void insert_character(Console *console, int character) {
 		console->input.length           += 1;
 		console->input.cursor_blink_time = 0.0f;
 	}
-
-	return;
 }
 
 void delete_character(Console *console) {
 	if (console->input.cursor_pos == 0) return; 
-	
 	int pos = console->input.cursor_pos;
 	
 	// Shift everything after the cursor to the left.
@@ -141,6 +142,31 @@ void delete_character(Console *console) {
 	console->input.cursor_pos       -= 1;
 	console->input.length           -= 1;
 	console->input.cursor_blink_time = 0.0f;
+}
 
-	return;
+void delete_word(Console* console) {
+	if (console->input.cursor_pos <= 0) return;
+	int old_pos = console->input.cursor_pos;
+	char *text  = console->input.data;
+
+	// First, eat all the whitespaces, then the word
+	while (console->input.cursor_pos > 0 && is_space(text[console->input.cursor_pos - 1])) {
+		console->input.cursor_pos--;
+	}
+	while (console->input.cursor_pos > 0 && !is_space(text[console->input.cursor_pos - 1])) {
+		console->input.cursor_pos--;
+	}
+
+	int num_of_chars_to_delete = old_pos - console->input.cursor_pos;
+	if (num_of_chars_to_delete > 0) {
+		// Move everything from the old_pos to the current_pos.
+		// Src: where the text originally starts (old_pos).
+		// Dest: where the new text should go to (current_pos).
+		// Size: remaining text with its null terminator.
+		memmove(&text[console->input.cursor_pos], &text[old_pos],
+				console->input.length - old_pos + 1);
+		
+		console->input.length -= num_of_chars_to_delete;
+		console->input.cursor_blink_time = 0.0f;
+	}
 }

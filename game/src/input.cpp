@@ -25,13 +25,23 @@ static void poll_console_inputs(Game *game) {
 		insert_character(&game->console, character);
 	}
 	
+	bool ctrl_held = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
     if (IsKeyPressed(KEY_BACKSPACE)) {
-        delete_character(&game->console);
+		if (ctrl_held) {
+			delete_word(&game->console);
+		} else {
+			delete_character(&game->console);
+		}
         game->console.input.key_timer = 0.4f;
+
     } else if (IsKeyDown(KEY_BACKSPACE)) {
-        game->console.input.key_timer -= GetFrameTime();
+        game->console.input.key_timer -= g_app->dt;
         if (game->console.input.key_timer <= 0.0f) {
-            delete_character(&game->console);
+			if (ctrl_held) {
+				delete_word(&game->console);
+			} else {
+				delete_character(&game->console);
+			}
             game->console.input.key_timer = 0.03f;
         }
     }

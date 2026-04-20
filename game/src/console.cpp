@@ -118,7 +118,12 @@ static void draw_input_area(Console *console) {
 	const Vector2 text_dimensions = MeasureTextEx(*font, text, font->baseSize, font_spacing);
 	const Color   text_color      = GREEN;
 
-	const float cursor_x        = text_dimensions.x + 6;
+	char text_before_cursor[CONSOLE_INPUT_SIZE] = { 0 };
+	memcpy(text_before_cursor, console->input.data, console->input.cursor_pos);
+	text_before_cursor[console->input.cursor_pos] = '\0';
+	const Vector2 text_before_cursor_dimensions = MeasureTextEx(*font, text_before_cursor, font->baseSize, font_spacing);
+
+	const float cursor_x        = text_pos.x + text_before_cursor_dimensions.x;
 	const float cursor_y        = input_y + 4;
 	const float cursor_width    = 4.0f;
 	const float cursor_height   = font->baseSize;
@@ -128,8 +133,7 @@ static void draw_input_area(Console *console) {
 	// Draw calls below.
 	DrawRectangleRec(input_rect, input_bg_color);
 	DrawTextEx(*font, text, text_pos, font->baseSize, font_spacing, text_color);
-	
-	// Cursor blink.
+
 	float dt = g_app->dt;
 	console->input.cursor_blink_time += dt;
 	if (console->input.cursor_blink_time <= 1.0f) {
@@ -280,6 +284,61 @@ void submit_command(Console *console) {
 	// add_command_to_history(console, command);
 	// parse_and_tokenize(console, command);
 	clear_input_area(console);
+}
+
+void move_cursor_by_char(Console* console, bool is_forward) {
+	int old_pos = console->input.cursor_pos;
+	if (is_forward) {
+		if (console->input.cursor_pos < console->input.length) {
+			console->input.cursor_pos++;
+		}
+	} else {
+		if (console->input.cursor_pos > 0) {
+			console->input.cursor_pos--;
+		}
+	}
+
+	if (console->input.cursor_pos != old_pos) {
+		console->input.cursor_blink_time = 0.0f;
+	}
+}
+
+void move_cursor_by_word(Console* console, bool is_forward) {
+	int old_pos = console->input.cursor_pos;
+	int *current_pos = &console->input.cursor_pos; // Aliasing.
+//	int& current_pos = console->input.cursor_pos;
+
+	char* text = console->input.data;
+	int length = console->input.length;
+
+	if (is_forward) { // Parse in front of the cursor position.
+		if (*current_pos >= length) {
+			return;
+		}
+
+		// Skip the current word first, then the whitespaces.
+		while (*current_pos < length && !is_space(text[*current_pos])) {
+			(*current_pos)++;
+		}
+		while (*current_pos < length && is_space(text[*current_pos])) {
+			(*current_pos)++;
+		}
+		
+	} else { // Parse behind the cursor position.
+		if (*current_pos <= 0) {
+			return;
+		}
+
+		// Skip the whitespaces first, then the previous word.
+		while (*current_pos > 0 && is_space(text[*current_pos - 1])) {
+			(*current_pos)--;
+		}
+		while (*current_pos > 0 && !is_space(text[*current_pos - 1])) {
+			(*current_pos)--;
+		}
+	}
+
+	if (*current_pos != old_pos) { console->input.cursor_blink_time = 0.0f; }
 }
 
 void push_log(Console *console, const char *message, ConsoleLogType type) {

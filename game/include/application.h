@@ -6,7 +6,7 @@
 #include "input.h"
 #include "assets.h"
 
-const uint32_t DESIRED_FPS = 60;
+const uint32_t DESIRED_FPS = 144;
 
 struct Application;
 extern Application *g_app;

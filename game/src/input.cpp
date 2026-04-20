@@ -20,80 +20,31 @@ static void handle_global_inputs(Application *app) {
 }
 
 static void poll_console_inputs(Game *game) {
+	Console *console = &game->console;
+	bool ctrl_held = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+
 	int character;
 	while ((character = GetCharPressed()) != 0)  {
 		insert_character(&game->console, character);
 	}
 	
-	bool ctrl_held = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
-	
-    if (IsKeyPressed(KEY_BACKSPACE)) {
-		if (ctrl_held) {
-			delete_word(&game->console);
-		} else {
-			delete_character(&game->console);
-		}
-        game->console.input.key_timer = 0.4f;
-
-    } else if (IsKeyDown(KEY_BACKSPACE)) {
-        game->console.input.key_timer -= g_app->dt;
-        if (game->console.input.key_timer <= 0.0f) {
-			if (ctrl_held) {
-				delete_word(&game->console);
-			} else {
-				delete_character(&game->console);
-			}
-            game->console.input.key_timer = 0.03f;
-        }
+	if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
+        ctrl_held ? delete_word(console) : delete_character(console);
     }
 
+    if (IsKeyPressed(KEY_LEFT) || IsKeyPressedRepeat(KEY_LEFT)) {
+        ctrl_held ? move_cursor_by_word(console, false) : move_cursor_by_char(console, false);
+        console->input.cursor_blink_time = 0.0f;
+    }
 
-	// @NOTE: The booleans within the parameter specify whether the cursor
-	// should be moving forwards (true) or backwards (false).
-	if (IsKeyPressed(KEY_LEFT)) {
-		if (ctrl_held) {
-			move_cursor_by_word(&game->console, false);
-		} else {
-			move_cursor_by_char(&game->console, false);
-		}
-		game->console.input.key_timer = 0.4f;
-	} else if (IsKeyDown(KEY_LEFT)) {
-        game->console.input.key_timer -= g_app->dt;
-        if (game->console.input.key_timer <= 0.0f) {
-			if (ctrl_held) {
-				move_cursor_by_word(&game->console, false);
-			} else {
-				move_cursor_by_char(&game->console, false);
-			}
-            game->console.input.key_timer = 0.03f;
-		}
-	}
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedRepeat(KEY_RIGHT)) {
+        ctrl_held ? move_cursor_by_word(console, true) : move_cursor_by_char(console, true);
+        console->input.cursor_blink_time = 0.0f;
+    }
 
-	if (IsKeyPressed(KEY_RIGHT)) {
-		if (ctrl_held) {
-			move_cursor_by_word(&game->console, true);
-		} else {
-			move_cursor_by_char(&game->console, true);
-		}
-		game->console.input.key_timer = 0.4f;
-	} else if (IsKeyDown(KEY_RIGHT)) {
-        game->console.input.key_timer -= g_app->dt;
-        if (game->console.input.key_timer <= 0.0f) {
-			if (ctrl_held) {
-				move_cursor_by_word(&game->console, true);
-			} else {
-				move_cursor_by_char(&game->console, true);
-			}
-            game->console.input.key_timer = 0.03f;
-		}
-	}
-
-
-
-	
-	if (IsKeyPressed(KEY_ENTER)) {
-		submit_command(&game->console);
-	}
+    if (IsKeyPressed(KEY_ENTER)) {
+        submit_command(console);
+    }
 }
 
 static void poll_menu_inputs(Game *game) {

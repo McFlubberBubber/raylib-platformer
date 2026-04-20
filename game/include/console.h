@@ -56,8 +56,6 @@ struct ConsoleInput {
 	// Cursor-related things.
 	int cursor_pos;
 	float cursor_blink_time;
-
-	float key_timer;
 };
 
 struct Console {

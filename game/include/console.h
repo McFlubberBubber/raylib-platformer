@@ -3,12 +3,12 @@
 
 #include "raylib.h"
 
-constexpr int CONSOLE_INPUT_SIZE = 512;
-constexpr int CONSOLE_ARENA_SIZE = (1024 * 64); // 64KB.
-constexpr int CONSOLE_MAX_LOGS   = 256;
+const int CONSOLE_INPUT_SIZE = 512;
+const int CONSOLE_ARENA_SIZE = (1024 * 64); // 64KB.
+const int CONSOLE_MAX_LOGS   = 256;
 
-constexpr int CONSOLE_MAX_HISTORY  = 64;
-constexpr int CONSOLE_HISTORY_SIZE = (1024 * 64); // 64KB.
+const int CONSOLE_MAX_HISTORY  = 64;
+const int CONSOLE_HISTORY_SIZE = (1024 * 64); // 64KB.
 
 enum ConsoleLogType {
 	CONSOLE_LOG_COMMAND = 0,

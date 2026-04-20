@@ -50,12 +50,12 @@ static void update_openness(Console *console, float dt) {
 
 static void draw_logs(Console* console) {
 	// First, draw the rectangle that will contain the logs.
-	const float LOG_X 	   = console->rect.x;
-    const float LOG_Y	   = console->rect.y;
-	const float LOG_WIDTH  = console->rect.width;
-	const float LOG_HEIGHT = console->rect.height - console->input.height;
+	const float log_x 	   = console->rect.x;
+    const float log_y	   = console->rect.y;
+	const float log_width  = console->rect.width;
+	const float log_height = console->rect.height - console->input.height;
 	
-	Rectangle log_rect = { LOG_X, LOG_Y, LOG_WIDTH, LOG_HEIGHT };
+	Rectangle log_rect = { log_x, log_y, log_width, log_height };
 	Color log_bg_color = { 25, 25, 25, 255 };
 	
 	DrawRectangleRec(log_rect, log_bg_color);
@@ -65,15 +65,17 @@ static void draw_logs(Console* console) {
 	const int log_count = console->log_buffer.log_count;
 	const int log_line_height = 36;
 
+	const Font *font = get_font(FONT_CONSOLE);
 	const int font_size = 32;
-	const int text_x    = LOG_X + log_padding;
-	int text_y          = LOG_Y + LOG_HEIGHT - font_size - log_padding;
+	const int text_x    = log_x + log_padding;
+	int text_y          = log_y + log_height - font_size - log_padding;
 	Color text_color;
 
-	BeginScissorMode(LOG_X, LOG_Y, LOG_WIDTH, LOG_HEIGHT);
+	// @TODO: Does this make a difference?
+	BeginScissorMode(log_x, log_y, log_width, log_height);
 
 	for (int i = log_count - 1; i >= 0; --i) {
-		if (text_y + font_size < LOG_Y + font_size) break;
+		if (text_y + font_size < log_y + font_size) break;
 
 		ConsoleLog *log = &console->log_buffer.logs[i];
 		char *text = log->message; 
@@ -87,8 +89,11 @@ static void draw_logs(Console* console) {
 			
 		default: { text_color = RAYWHITE; break; } 
 		}
-		
-		DrawText(text, text_x, text_y, font_size, text_color);
+
+		Vector2 pos = { (float)text_x, (float)text_y };
+		const float spacing = 0.0f;
+		DrawTextEx(*font, text, pos, font_size, spacing, text_color);
+
 		text_y -= log_line_height;
 	}
 
@@ -97,32 +102,33 @@ static void draw_logs(Console* console) {
 
 static void draw_input_area(Console *console) {
 	// Specifications for the input rect.
-	const float INPUT_X      = console->rect.x;
-	const float INPUT_Y      = console->rect.height - console->input.height;
-	const float INPUT_WIDTH  = console->rect.width;
-	const float INPUT_HEIGHT = console->input.height;
-	const Rectangle input_rect = { INPUT_X, INPUT_Y, INPUT_WIDTH, INPUT_HEIGHT };
+	const float input_x      = console->rect.x;
+	const float input_y      = console->rect.height - console->input.height;
+	const float input_width  = console->rect.width;
+	const float input_height = console->input.height;
+	const Rectangle input_rect = { input_x, input_y, input_width, input_height };
 	const Color input_bg_color = { 18, 75, 75, 200 };
 
-	// Specifications for the text and the cursor.
-	const char *text       = console->input.data;
-	const int TEXT_X       = (int)INPUT_X + 6;
-	const int TEXT_Y       = (int)INPUT_Y;
-	const int FONT_SIZE    = (int)INPUT_HEIGHT - 6;
-	const int text_width   = MeasureText(text, FONT_SIZE);
-	const Color text_color = { 50, 200, 100, 255 };
+	// Specifications for the text and the cursor.	
+	const Font *font         = get_font(FONT_CONSOLE_INPUT);
+	const float font_spacing = 0.0f;
 
-	const float CURSOR_X      = text_width + 10;
-	const float CURSOR_Y      = INPUT_Y + 8;
-	const float CURSOR_WIDTH  = 8.0f;
-	const float CURSOR_HEIGHT = FONT_SIZE - 10;
-	const Rectangle cursor_rect  = { CURSOR_X, CURSOR_Y, CURSOR_WIDTH, CURSOR_HEIGHT };
-	const Color cursor_color     = text_color;
+	const char   *text            = console->input.data;
+	const Vector2 text_pos        = { (float)(input_x + 2), (float)(input_y + 6) };
+	const Vector2 text_dimensions = MeasureTextEx(*font, text, font->baseSize, font_spacing);
+	const Color   text_color      = GREEN;
+
+	const float cursor_x        = text_dimensions.x + 6;
+	const float cursor_y        = input_y + 4;
+	const float cursor_width    = 4.0f;
+	const float cursor_height   = font->baseSize;
+	const Rectangle cursor_rect = { cursor_x, cursor_y, cursor_width, cursor_height };
+	const Color cursor_color    = text_color;
 
 	// Draw calls below.
 	DrawRectangleRec(input_rect, input_bg_color);
-	DrawText(text, TEXT_X, TEXT_Y, FONT_SIZE, text_color);
-
+	DrawTextEx(*font, text, text_pos, font->baseSize, font_spacing, text_color);
+	
 	// Cursor blink.
 	float dt = g_app->dt;
 	console->input.cursor_blink_time += dt;
@@ -142,13 +148,18 @@ void init_console(Console *console) {
 																
 	// Input area initialization.
 	console->input.length = 0;
-	console->input.height = 50.0f;
+	console->input.height = 48.0f;
 	
 	console->input.cursor_pos        = 0;
 	console->input.cursor_blink_time = 0.0f;
 
 	// Console arena stuff...
+#if 0
 	console->log_buffer.arena = (char *)malloc(CONSOLE_ARENA_SIZE);
+#else
+	console->log_buffer.arena = (char *)MemAlloc(CONSOLE_ARENA_SIZE);
+#endif
+
 	if (!console->log_buffer.arena) {
 		// @TODO: Error diagnostic for no memory allocated.
 		console->is_initialized = false;
@@ -157,7 +168,12 @@ void init_console(Console *console) {
 	console->log_buffer.offset    = 0;
 	console->log_buffer.capacity  = CONSOLE_ARENA_SIZE;
 
+#if 0
 	console->history.arena = (char *)malloc(CONSOLE_HISTORY_SIZE);
+#else
+	console->history.arena = (char *)MemAlloc(CONSOLE_HISTORY_SIZE);
+#endif
+	
 	if (!console->history.arena) {
 		// @TODO: Error diagnostic for no memory allocated.
 		console->is_initialized = false;
@@ -184,8 +200,13 @@ void draw_console(Console *console) {
 }
 
 void cleanup_console(Console *console) {
+#if 0
 	free(console->log_buffer.arena);
 	free(console->history.arena);
+#else
+	MemFree(console->log_buffer.arena);
+	MemFree(console->history.arena);
+#endif
 	
 	console->log_buffer.arena = nullptr;
 	console->history.arena    = nullptr;

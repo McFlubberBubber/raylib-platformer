@@ -7,21 +7,22 @@
 struct AssetManager;
 extern AssetManager *g_asset_manager;
 
-enum TextureID {
+enum TextureID : unsigned short {
 	TEXTURE_TEMP = 0,
 	
 	TEXTURE_COUNT,
 };
 
-enum SoundID {
+enum SoundID : unsigned short {
 	SOUND_PLAYER_JUMP = 0,
-	
+		
 	SOUND_COUNT,
 };
 
-enum FontID {
-	FONT_TEMP = 0,
-	
+enum FontID : unsigned short {
+	FONT_CONSOLE = 0,
+	FONT_CONSOLE_INPUT,
+			
 	FONT_COUNT,
 };
 

@@ -6,6 +6,8 @@
 #include "input.h"
 #include "assets.h"
 
+const uint32_t DESIRED_FPS = 60;
+
 struct Application;
 extern Application *g_app;
 
@@ -43,7 +45,7 @@ struct Application {
 	int game_width  = 1920;
 	int game_height = 1080;
 
-	int target_fps = 60;
+	int target_fps = DESIRED_FPS;
 	bool should_close;
 
 	Game game;

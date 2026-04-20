@@ -20,15 +20,39 @@ static void load_all_sounds(AssetManager *asset_manager, const char *base) {
 	}
 }
 
+static void load_all_fonts(AssetManager *asset_manager, const char *base) {
+	char full_path[256];
+
+#if 0 
+	const char *paths[] = {
+		"data/fonts/Consolas-Regular.ttf",
+	};
+
+	for (int i = 0; i < FONT_COUNT; ++i) {
+		snprintf(full_path, sizeof(full_path), "%s%s", base, paths[i]);
+		asset_manager->fonts[i] = LoadFont(full_path);
+
+		if (!IsFontValid(asset_manager->fonts[i])) {
+			TraceLog(LOG_ERROR, "Failed to load font: %s", full_path);
+		}
+	}
+#else
+	const char *consolas = "data/fonts/Consolas-Regular.ttf";
+	snprintf(full_path, sizeof(full_path), "%s%s", base, consolas);
+
+	asset_manager->fonts[FONT_CONSOLE]       = LoadFontEx(full_path, 32, NULL, 0);
+	asset_manager->fonts[FONT_CONSOLE_INPUT] = LoadFontEx(full_path, 40, NULL, 0);
+#endif
+
+}
+
 void load_all_assets(AssetManager *asset_manager) {
-	// @TODO: We have some temporary sounds that we want to test first, but we
-	// will be loading textures and fonts + other stuff later...
 	InitAudioDevice();
 
 	const char *base = GetApplicationDirectory();
 	// load_all_textures(asset_manager, base);
 	load_all_sounds(asset_manager, base);
-	// load_all_fonts(asset_manager, base);
+	load_all_fonts(asset_manager, base);
 }
 
 void unload_all_assets(AssetManager *asset_manager) { CloseAudioDevice(); }

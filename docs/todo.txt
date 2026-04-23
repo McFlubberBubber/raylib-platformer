@@ -29,6 +29,7 @@ TODO LIST
 - Think about ways to improve collision detection rather than iterating through the entire array
   of tiles when in the game world. Maybe even switch to raycasting from the player to prevent
   flickering of states in the debug overlay.
+
 - We got the camera system working but we should really be figuring out how we should format our
   world / levels / screens for the long term. We got things working using the screen dimensions,
   but we don't really know if those will continue working once we get the settings page running
@@ -48,3 +49,18 @@ TODO LIST
 
 - Clean up some of the console cursor blink handling as we don't automatically do that sometimes.
   For example, in input.cpp, we update the cursor_blink_time manually. 
+
+- We need to do update our memory allocation stuff within the general.cpp because that is what we
+  use to heap-allocate stuff so far. Right now, we call out to raylib's MemAlloc() function which
+  calls calloc(), but we should consider potentially utilizing platform-specific memory allocation
+  such as VirtualAlloc() for Windows, mmap for Linux, etc (not sure what MacOS uses) - mainly
+  because people seem to recommend doing so.   -nathan, 23/04/2026
+
+- Since we refactored the world code massively, we need to rebuild our actual world since currently,
+  there is no world data (previously, it was hardcoded into a global array). Now, we can figure out
+  how to serialize the world data since we have our memory allocation strategies out of the way
+  (mostly out of the way). Doing so will allow us to work on the editor and thus make levels pretty
+  easily! There is one caveat to all this which is, the current code that exists within the world.cpp
+  only considered levels / screens on a horizontal plane, therefore we can't make stuff go high or
+  lower, which we should get going to make our platformer more dynamic, rather than a weird side-
+  scroller situation.  -nathan, 23/04/2026

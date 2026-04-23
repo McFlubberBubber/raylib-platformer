@@ -45,3 +45,6 @@ TODO LIST
 
 - We can get our hotloader functionality put into the game, along with some configuration file
   that gets read from / written to to save user config options.
+
+- Clean up some of the console cursor blink handling as we don't automatically do that sometimes.
+  For example, in input.cpp, we update the cursor_blink_time manually. 

@@ -1,49 +1,67 @@
 #include "player.h"
 
-#include <stdio.h>
-
 #include "application.h"
-
-// @Speed: Currently, we iterate through EVERY TILE that exists within the world, we could change
-// this where we only check collisions that are within range of the player, or if the tiles are
-// even on the same screen, etc.
-static void check_vertical_collisions(Player *player, World *world) {
-	player->is_grounded = false;
-#if 0
-	for (auto &tile : world->tiles) {
-#else
-	for (auto &tile : world->screens[world->current_screen_index].tiles) {
-#endif
-		if (CheckCollisionRecs(player->sprite, tile.rect)) {
-			if (player->vel.y > 0) { // Hitting the ground.
-				player->pos.y = tile.rect.y - player->sprite.height;
-				player->vel.y = 0.0f;
-				player->is_grounded = true;
-			} else { // Hitting the ceiling.
-				player->pos.y = tile.rect.y + tile.rect.height;
-				player->vel.y = 0.0f;
-			}
-			player->sprite.y = player->pos.y;
-		}
-	}
-}
+#include "world.h"
 
 static void check_horizontal_collisions(Player *player, World *world) {
+	const float tile_size = world->tile_size;
 
-#if 0
-	for (auto &tile : world->tiles) {
-#else
-	for (auto &tile : world->screens[world->current_screen_index].tiles) {
-#endif
-		if (CheckCollisionRecs(player->sprite, tile.rect)) {
-			if (player->vel.x > 0) { // Moving right.
-				player->pos.x = tile.rect.x - player->sprite.width;
-			} else { // Moving left.
-				player->pos.x = tile.rect.x + tile.rect.width;
-			}
-			player->sprite.x = player->pos.x;
+	float top    = player->pos.y;
+    float bottom = player->pos.y + player->sprite.height;
+    float left   = player->pos.x;
+    float right  = player->pos.x + player->sprite.width;
+
+	float mid_y = player->pos.y + player->sprite.height * 0.5f;
+
+    if (player->vel.x > 0) {
+        // Moving right -> check right.
+        if (is_solid(world, right, top) || is_solid(world, right, mid_y) ||
+			is_solid(world, right, bottom)) {
+            player->pos.x = floorf(right / tile_size) * tile_size - player->sprite.width;
+            player->vel.x = 0;
+        }
+    } else if (player->vel.x < 0) {
+        // Moving left -> check left.
+        if (is_solid(world, left, top) || is_solid(world, left, mid_y) ||
+			is_solid(world, left, bottom)) {
+            player->pos.x = (floorf(left / tile_size) + 1.0f) * tile_size;
+            player->vel.x = 0;
+        }
+    }
+
+//    player->sprite.x = player->pos.x;
+}
+
+
+static void check_vertical_collisions(Player *player, World *world) {
+	player->is_grounded = false;
+	
+	const float tile_size = world->tile_size;
+	float left   = player->pos.x;
+	float right  = player->pos.x + player->sprite.width;
+	float top    = player->pos.y;
+	float bottom = player->pos.y + player->sprite.height;
+
+	float mid_x  = player->pos.x + player->sprite.width * 0.5f; 
+
+	if (player->vel.y > 0) {
+		// Falling -> check bottom.
+		if (is_solid(world, left, bottom) || is_solid(world, mid_x, bottom) ||
+			is_solid(world, right, bottom)) {
+			player->pos.y = floorf(bottom / tile_size) * tile_size - player->sprite.height;
+			player->vel.y = 0;
+			player->is_grounded = true;
+		}
+	} else if (player->vel.y < 0) {
+		// Jumping -> check top.
+		if (is_solid(world, left, top) || is_solid(world, mid_x, top) ||
+			is_solid(world, right, top)) {
+			player->pos.y = (floorf(top / tile_size) + 1.0f) * tile_size;
+			player->vel.y = 0;
 		}
 	}
+
+//	player->sprite.y = player->pos.y;
 }
 
 void init_player(Player *player) {
@@ -67,11 +85,6 @@ void init_player(Player *player) {
 	player->health = 3;
 }
 
-// @TODO: We bundle up the player input in here, so if we want to, we can pull that out into a
-// seperate function and put some of these vars into the player struct. But we also may need a
-// seperate file that is dedicated to responsing to inputs since we want to take inputs from a
-// lot of places (opening menu, main menu, the different pages within them, then within the game
-// world, also in the editor, so on).
 void update_player(Player *player, World *world, Input* input, float dt) {
 	// These value are usually the inverse, but because of OpenGL / raylib rendering, the y
 	// starts at the top, meaning if we want to jump to go up, we need to minus the screen space
@@ -107,18 +120,16 @@ void update_player(Player *player, World *world, Input* input, float dt) {
 	if (!player->is_grounded) player->vel.y += gravity * dt;
 
 	// Handling horizontal movement first, then checking its collisions.
-	player->pos.x   += player->vel.x * dt;
-	player->sprite.x = player->pos.x;
-	player->sprite.y = player->pos.y;
+	float dx = player->vel.x * dt;
+	player->pos.x   += dx;
 	check_horizontal_collisions(player, world);
 
 	// Then, handle the verticle stuff.
-	player->pos.y += player->vel.y * dt;
-	player->sprite.y = player->pos.y;
+	float dy = player->vel.y * dt;
+	player->pos.y += dy;
 	check_vertical_collisions(player, world);
 
 	if (player->is_grounded) player->vel.y = 0.0f;
-
 	if ((player->sprite.y + player->sprite.height) >= 1000) player->health = 0;
 
 	// Handling state changes.
@@ -134,6 +145,9 @@ void update_player(Player *player, World *world, Input* input, float dt) {
 	if (player->health <= 0) new_state = PLAYER_DEAD;
 	
 	player->state = new_state;
+
+	player->sprite.x = player->pos.x;
+	player->sprite.y = player->pos.y;
 }
 
 void draw_player(Player *player) {

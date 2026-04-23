@@ -32,14 +32,16 @@ static void poll_console_inputs(Game *game) {
         ctrl_held ? delete_word(console) : delete_character(console);
     }
 
+	// These arrow key inputs are for cursor navigations, where false = backwards and
+	// true = forwards.
     if (IsKeyPressed(KEY_LEFT) || IsKeyPressedRepeat(KEY_LEFT)) {
         ctrl_held ? move_cursor_by_word(console, false) : move_cursor_by_char(console, false);
-        console->input.cursor_blink_time = 0.0f;
+        console->input.cursor_blink_time = 0.0f; // @TODO: Reset cursor blink time automatically.
     }
 
     if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedRepeat(KEY_RIGHT)) {
         ctrl_held ? move_cursor_by_word(console, true) : move_cursor_by_char(console, true);
-        console->input.cursor_blink_time = 0.0f;
+        console->input.cursor_blink_time = 0.0f; // @TODO: Same here.
     }
 
     if (IsKeyPressed(KEY_ENTER)) {
@@ -115,5 +117,5 @@ void poll_inputs(Application *app) {
 	
 	input->player_jump = IsKeyPressed(KEY_SPACE);
 
-	// @TODO: Console + Editor inputs?
+	// @TODO: Editor inputs?
 }

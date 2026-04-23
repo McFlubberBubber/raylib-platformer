@@ -2,13 +2,13 @@
 #define CONSOLE_H
 
 #include "raylib.h"
+#include "general.h"
 
-const int CONSOLE_INPUT_SIZE = 512;
-const int CONSOLE_ARENA_SIZE = (1024 * 64); // 64KB.
-const int CONSOLE_MAX_LOGS   = 256;
+const int CONSOLE_INPUT_SIZE  = 512;
+const int CONSOLE_MAX_LOGS    = 256;
+const int CONSOLE_MAX_HISTORY = 64;
 
-const int CONSOLE_MAX_HISTORY  = 64;
-const int CONSOLE_HISTORY_SIZE = (1024 * 64); // 64KB.
+const int CONSOLE_ARENA_SIZE = kilobytes(128);
 
 enum ConsoleLogType {
 	CONSOLE_LOG_COMMAND = 0,
@@ -32,19 +32,11 @@ struct ConsoleLog {
 struct ConsoleLogBuffer {
 	ConsoleLog logs[CONSOLE_MAX_LOGS];
 	int log_count;
-
-	char  *arena; // Heap-allocated.
-	int    offset;
-	size_t capacity;
 };
 
 struct ConsoleHistory {
 	char *entries[CONSOLE_MAX_HISTORY];
 	int   count;
-	
-	char  *arena; // Heap-allocated.
-	int    offset;
-	size_t capacity;
 };
 
 struct ConsoleInput {
@@ -59,7 +51,10 @@ struct ConsoleInput {
 };
 
 struct Console {
+	Arena arena;
+
 	ConsoleState state;
+
 	int openness;
 	Rectangle rect;
 	

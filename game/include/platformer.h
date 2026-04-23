@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 
+#include "general.h"
 #include "menu.h"
 #include "world.h"
 #include "player.h"
@@ -44,16 +45,19 @@ struct GameCommand {
 };
 
 struct Game {
+	Arena world_arena;
+	Arena temp_arena;
+
 	GameState state = GAME_OPENING_MENU;
 	GameCommand pending_commands[MAX_COMMAND_COUNT] = {};
 	int command_count = 0;
 
 	Menu menu;
-	World world;
+	World world = {};
 	Player player;
 	Camera2D camera;
 
-	Console console;
+	Console console = {};
 
 	bool debug_mode = false;
 };

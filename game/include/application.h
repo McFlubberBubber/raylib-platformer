@@ -2,6 +2,8 @@
 #define APPLICATION_H
 
 #include "raylib.h"
+#include "general.h"
+
 #include "platformer.h"
 #include "input.h"
 #include "assets.h"

@@ -2,33 +2,55 @@
 #define WORLD_H
 
 #include "raylib.h"
-#include <vector> // For dynamic array stuff.
+#include "general.h"
 
 struct Player;
 
+enum TileType : u8 {
+	TILE_EMPTY = 0,
+	TILE_SOLID,
+	TILE_SPIKE
+};
+
 struct Tile {
-	Rectangle rect;
+	TileType type;
+	u8 flags;
+	u16 variant;
 };
 
 struct Screen {
-	std::vector<Tile> tiles; 
+	u32 tile_offset; // @NOTE: This assumes every screen size has the same offset...
 };
 
 struct World {
-	std::vector<Tile> tiles; // Temp...
-	int current_screen_index;
-	int  target_screen_index;
+	Arena *arena;
 
+	u32 screen_width;
+	u32 screen_height;
+	u32 tiles_per_screen; // Width * Height.
 
-	int screen_width;
-	int screen_height;
-	int total_screens;
-	std::vector<Screen> screens;
+	Array<Screen> screens;
+	Array<Tile> tiles;
+	
+	float tile_size; // @Temporary? 
+
+	s32 current_screen_index;
+	s32  target_screen_index;
 };
 
-void init_world(World *world, Camera2D *camera);
+void init_world(World *world, Arena *arena, u32 screen_count, u32 width, u32 height);
 void update_world(World *world, Player *player, Camera2D *camera, float dt);
 void draw_world(World *world);
 void cleanup_world(World *world);
+
+// Lookup functions.
+inline u32 get_tile_index(const World *world, u32 screen_index, u32 x, u32 y) {
+	return world->screens.data[screen_index].tile_offset + (y * world->screen_width + x);
+}
+
+Vector2 tile_index_to_world(const World *world, u32 screen_index, u32 tile_index);
+void world_to_tile(const World *world, Vector2 world_pos, u32 *screen, u32 *out_x, u32 *out_y);
+
+bool is_solid(const World *world, float world_x, float world_y);
 
 #endif

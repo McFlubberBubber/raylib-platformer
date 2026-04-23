@@ -4,6 +4,7 @@
 #include <stdio.h> 		 // For printing stuff. 
 #include "application.h" // For accessing the app state.
 #include "input.h"       // Input-handling...
+#include "general.h"
 
 static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
@@ -149,7 +150,16 @@ static void draw_game_environment(Game *game) {
 
 void init_game(Game *game) {
 	init_camera(&game->camera);
-	init_world(&game->world, &game->camera);
+
+	const u32 screen_count = 10;
+	const u32 tiles_wide = g_app->game_width  / 32;
+	const u32 tiles_tall = g_app->game_height / 32;
+
+	arena_init(&game->world_arena, megabytes(64));
+	arena_init(&game->temp_arena, megabytes(16));
+	init_world(&game->world, &game->world_arena, screen_count,
+			   tiles_wide, tiles_tall);
+
 	init_player(&game->player);
 
 	init_console(&game->console);
@@ -221,6 +231,9 @@ void draw_game(Game *game) {
 }
 
 void cleanup_game(Game *game) {
+	arena_free(&game->world_arena);
+	arena_free(&game->temp_arena);
+	
 	cleanup_console(&game->console);
 }
 

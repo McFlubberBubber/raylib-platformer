@@ -110,29 +110,32 @@ static void draw_input_area(Console *console) {
 	const Color input_bg_color = { 18, 75, 75, 200 };
 
 	// Specifications for the text and the cursor.	
-	const Font *font         = get_font(FONT_CONSOLE_INPUT);
+//	const Font *font         = get_font(FONT_CONSOLE_INPUT);
+//	const float font_size    = font->baseSize;
+	const Font *font         = get_font(FONT_CONSOLE);
+	const float font_size    = 40;
 	const float font_spacing = 0.0f;
 
 	const char   *text            = console->input.data;
 	const Vector2 text_pos        = { (float)(input_x + 2), (float)(input_y + 6) };
-	const Vector2 text_dimensions = MeasureTextEx(*font, text, font->baseSize, font_spacing);
+	const Vector2 text_dimensions = MeasureTextEx(*font, text, font_size, font_spacing);
 	const Color   text_color      = GREEN;
 
 	char text_before_cursor[CONSOLE_INPUT_SIZE] = { 0 };
 	memcpy(text_before_cursor, console->input.data, console->input.cursor_pos);
 	text_before_cursor[console->input.cursor_pos] = '\0';
-	const Vector2 text_before_cursor_dimensions = MeasureTextEx(*font, text_before_cursor, font->baseSize, font_spacing);
+	const Vector2 text_before_cursor_dimensions = MeasureTextEx(*font, text_before_cursor, font_size, font_spacing);
 
 	const float cursor_x        = text_pos.x + text_before_cursor_dimensions.x;
 	const float cursor_y        = input_y + 4;
 	const float cursor_width    = 4.0f;
-	const float cursor_height   = font->baseSize;
+	const float cursor_height   = font_size;
 	const Rectangle cursor_rect = { cursor_x, cursor_y, cursor_width, cursor_height };
 	const Color cursor_color    = text_color;
 
 	// Draw calls below.
 	DrawRectangleRec(input_rect, input_bg_color);
-	DrawTextEx(*font, text, text_pos, font->baseSize, font_spacing, text_color);
+	DrawTextEx(*font, text, text_pos, font_size, font_spacing, text_color);
 
 	float dt = g_app->dt;
 	console->input.cursor_blink_time += dt;
@@ -157,42 +160,19 @@ void init_console(Console *console) {
 	console->input.cursor_pos        = 0;
 	console->input.cursor_blink_time = 0.0f;
 
-	// Console arena stuff...
-#if 0
-	console->log_buffer.arena = (char *)malloc(CONSOLE_ARENA_SIZE);
-#else
-	console->log_buffer.arena = (char *)MemAlloc(CONSOLE_ARENA_SIZE);
-#endif
-
-	if (!console->log_buffer.arena) {
-		// @TODO: Error diagnostic for no memory allocated.
+	arena_init(&console->arena, CONSOLE_ARENA_SIZE);
+	if (!console->arena.base) {
 		console->is_initialized = false;
+		fprintf(stderr, "Console has not been initialized correctly!\n");
+		return;
 	}
-	console->log_buffer.log_count = 0;
-	console->log_buffer.offset    = 0;
-	console->log_buffer.capacity  = CONSOLE_ARENA_SIZE;
 
-#if 0
-	console->history.arena = (char *)malloc(CONSOLE_HISTORY_SIZE);
-#else
-	console->history.arena = (char *)MemAlloc(CONSOLE_HISTORY_SIZE);
-#endif
-	
-	if (!console->history.arena) {
-		// @TODO: Error diagnostic for no memory allocated.
-		console->is_initialized = false;
-	}
 	console->log_buffer.log_count = 0;
-	console->log_buffer.offset    = 0;
-	console->log_buffer.capacity  = CONSOLE_ARENA_SIZE;
-	
+	console->history.count = 0;
+
 	// @TODO: Load up console arguments here.
 
-	if (console->is_initialized) {
-		push_log(console, "This is the console. Type 'help' for more commands.", CONSOLE_LOG_INFO);
-	} else {
-		fprintf(stderr, "Console has not been initialized correctly!\n");
-	}
+	push_log(console, "This is the console. Type 'help' for more commands.", CONSOLE_LOG_INFO);
 }
 
 void draw_console(Console *console) {
@@ -204,16 +184,7 @@ void draw_console(Console *console) {
 }
 
 void cleanup_console(Console *console) {
-#if 0
-	free(console->log_buffer.arena);
-	free(console->history.arena);
-#else
-	MemFree(console->log_buffer.arena);
-	MemFree(console->history.arena);
-#endif
-	
-	console->log_buffer.arena = nullptr;
-	console->history.arena    = nullptr;
+	arena_free(&console->arena);
 }
 
 void insert_character(Console *console, int character) {
@@ -342,23 +313,19 @@ void move_cursor_by_word(Console* console, bool is_forward) {
 }
 
 void push_log(Console *console, const char *message, ConsoleLogType type) {
-
 	ConsoleLogBuffer *buffer = &console->log_buffer;
-	int message_length = strlen(message) + 1; // Accounting for the null terminator.
-
-	if ((buffer->offset + message_length) > buffer->capacity) {
-		// @TODO: Handle full arena.
-		return;
-	}
 	if (buffer->log_count >= CONSOLE_MAX_LOGS) {
 		// @TODO: Handle full log array.
 		return;
 	}
 
-	char *dest = &buffer->arena[buffer->offset];
+	int message_length = strlen(message) + 1; // Accounting for the null terminator.
+	
+	char *dest = (char *)arena_allocate(&console->arena, message_length, 1);
+	if (!dest) return; // Arena is full.
+	
 	memcpy(dest, message, message_length);
-	buffer->offset += message_length;
-
+	
 	ConsoleLog *log = &buffer->logs[buffer->log_count++];
 	log->message = dest;
 	log->type    = type;

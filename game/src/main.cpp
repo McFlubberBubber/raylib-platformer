@@ -13,7 +13,7 @@
 #include "application.h"
 
 int main() {
-	Application app;
+	Application app = {};
 	init_app(&app);
 
 	while (!WindowShouldClose() && !app.should_close) {

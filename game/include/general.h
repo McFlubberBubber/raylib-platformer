@@ -54,7 +54,7 @@ void  arena_free(Arena *a);
 #define push_array_to_arena(arena, type, count) (type *)arena_allocate(arena, sizeof(type) * (count), \
 																	   alignof(type))
 
-// Dynamic Array stuff using C++ since I don't want to use vectors...
+// I didn't want to use std::vector...
 template <typename T>
 struct Array {
 	T *data;
@@ -81,6 +81,44 @@ template <typename T>
 T *array_get_at_index(Array<T> *array, size_t index) {
 	assert(index < array->count);
 	return &array->data[index];
+}
+
+template <typename T>
+void array_unordered_remove(Array<T> *array, size_t index) {
+	assert(array);
+	assert(index < array->count);
+
+	array->data[index] = array->data[array->count - 1];
+	array->count--;
+}
+
+template <typename T>
+void array_ordered_remove(Array<T> *array, size_t index) {
+	assert(array);
+	assert(index < array->count);
+
+	size_t num_of_elements_to_shift = array->count - index - 1;
+	if (num_of_elements_to_shift > 0) {
+		memmove(&array->data[index], &array->data[index + 1], num_of_elements_to_shift * sizeof(T));
+	}
+
+	array->count--;
+}
+
+// Removes and return the last item in the array.
+template <typename T>
+T array_pop(Array<T> *array) {
+	assert(array);
+	assert(array->count > 0);
+	return array->data[--array->count]; 
+}
+
+// This doesn't free up the memory since we are already using the arena for allocations, therefore
+// this will just reset the count back to 0.
+template <typename T>
+void array_reset(Array<T> *array) {
+	assert(array);
+	array->count = 0;
 }
 
 #endif

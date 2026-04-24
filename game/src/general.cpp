@@ -41,6 +41,7 @@ void *arena_allocate(Arena *a, size_t size, size_t align) {
 void arena_init(Arena *a, size_t size) {
 	a->base = (u8 *)MemAlloc(size); // Raylib calls out to calloc() and zeroes it out.
 	memset(a->base, 0, size);       // Just in case.
+	assert(a->base);
 
 	a->size = size;
 	a->used = 0;

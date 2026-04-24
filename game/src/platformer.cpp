@@ -148,6 +148,19 @@ static void draw_game_environment(Game *game) {
 	draw_ui(game);
 }
 
+static void draw_editor_view(Game *game) {
+	ClearBackground(BLACK);
+
+	// Drawing actual world space stuff.
+	BeginMode2D(game->camera);
+	draw_world(&game->world);
+	draw_player(&game->player);
+	EndMode2D();
+	
+	// @TODO: Do this.
+	// draw_editor_ui(game);
+}
+
 void init_game(Game *game) {
 	init_camera(&game->camera);
 
@@ -155,13 +168,22 @@ void init_game(Game *game) {
 	const u32 tiles_wide = g_app->game_width  / 32;
 	const u32 tiles_tall = g_app->game_height / 32;
 
+	// The world_arena is sized for tile data + future entity metadata overhead.
 	arena_init(&game->world_arena, megabytes(64));
 	arena_init(&game->temp_arena, megabytes(16));
-	init_world(&game->world, &game->world_arena, screen_count,
-			   tiles_wide, tiles_tall);
+
+#if 0
+	init_world(&game->world, &game->world_arena, screen_count, tiles_wide, tiles_tall);
+#else
+	bool loaded = load_world(&game->world, &game->world_arena);
+	if (!loaded) {
+		init_world(&game->world, &game->world_arena, screen_count, tiles_wide, tiles_tall);
+		save_world(&game->world);
+		fprintf(stderr, "[INIT_GAME] No world data loaded. Starting blank world instead.\n");
+	}
+#endif
 
 	init_player(&game->player);
-
 	init_console(&game->console);
 }
 
@@ -189,6 +211,10 @@ void update_game(Game *game, Input *input, float dt) {
 		break;
 	}
 	case GAME_EDITOR: {
+		// @TODO: Should we still be updating stuff while in editor mode? update_world() has it's
+		// own camera system, and we want to be able to use our WASD keys to navigate the world.
+		// update_world(&game->world, &game->player, &game->camera, dt);
+		// update_player(&game->player, &game->world, input, dt);
 		break;
 	}
 	default: {
@@ -213,17 +239,15 @@ void draw_game(Game *game) {
 		break;
 	}
 	case GAME_EDITOR: {
-		// @TODO: Handle editor stuff...
+		draw_editor_view(game);
 		break;
 	}
 	default: {
 		break;
 	}
-		
 	}
 
-	// @Dev 
-	if (game->debug_mode) {
+	if (game->debug_mode) {	// @Dev 
 		draw_debug_overlay(game);
 	}
 
@@ -308,6 +332,18 @@ void process_command_list(Game *game) {
 			}
 			break;
 		}
+		case CMD_TOGGLE_EDITOR_MODE: {
+			static GameState prev = game->state;
+			if (game->state != GAME_EDITOR) {
+				game->state = GAME_EDITOR;
+				printf("Toggling game state: GAME_EDITOR\n");
+			} else if (game->state == GAME_EDITOR){
+				game->state = prev;
+				printf("Reverting to previous game state.\n");
+			}
+			break;
+		}
+
 		}
 	}
 	game->command_count = 0;

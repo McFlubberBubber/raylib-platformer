@@ -374,9 +374,14 @@ void handle_menu_activations(Menu *menu) {
 }
 
 void handle_menu_escape_press(Menu *menu) {
+	Game *game = &g_app->game;
+
+	if (menu->current_page == PAGE_MAIN && game->state == GAME_OPENING_MENU) {
+		return; // Escape press won't do anything on the opening menu (for now).
+	}
+
 	switch (menu->current_page) {
 	case PAGE_MAIN: {
-		Game *game = &g_app->game;
 		push_command_change_state(game, GAME_WORLD);
 		break;
 	}

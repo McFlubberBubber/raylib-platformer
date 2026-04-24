@@ -3,6 +3,95 @@
 #include "raymath.h" // For Lerp
 #include "application.h"
 
+bool save_world(const World *world) {
+	char full_path[128];
+	const char *app_dir    = GetApplicationDirectory();
+	const char *world_path = "data/world/level_01.wld";
+	
+	snprintf(full_path, sizeof(full_path), "%s%s", app_dir, world_path); 
+
+	FILE *file = fopen(full_path, "wb");
+	if (!file) {
+		fprintf(stderr, "[SAVE_WORLD] Failed to open '%s' for writing.\n", full_path);
+		return false;
+	}
+
+	WorldFileHeader header = {};
+	header.magic   		 = WORLD_FILE_MAGIC;
+	header.version 		 = WORLD_FILE_VERSION;
+	header.screen_width  = (u16)world->screen_width;
+	header.screen_height = (u16)world->screen_height;
+	header.screen_count  = (u16)world->screens.count;
+
+	if (fwrite(&header, sizeof(header), 1, file) != 1) {
+		fprintf(stderr, "[SAVE_WORLD] Failed to write to header.\n");
+		fclose(file);
+		return false;
+	}
+
+	u32 tile_count = world->screens.count * world->tiles_per_screen;
+	if (fwrite(world->tiles.data, sizeof(Tile), tile_count, file) != tile_count) {
+		fprintf(stderr, "[SAVE_WORLD] Failed to write tile data.\n");
+		fclose(file);
+		return false;
+	}
+
+	fclose(file);
+	return true;
+}
+
+bool load_world(World *world, Arena *arena) {
+	char full_path[128];
+	const char *app_dir    = GetApplicationDirectory();
+	const char *world_path = "data/world/level_01.wld";
+	
+	printf("app_dir: %s\n", app_dir);
+	snprintf(full_path, sizeof(full_path), "%s%s", app_dir, world_path); 
+
+	FILE *file = fopen(full_path, "rb");
+	if (!file) {
+		fprintf(stderr, "[LOAD_WORLD] Failed to open '%s' for reading.\n", full_path);
+		return false;
+	}
+
+	WorldFileHeader header = {};
+	if (fread(&header, sizeof(header), 1, file) != 1) {
+		fprintf(stderr, "[LOAD_WORLD] Failed to read header.\n");
+		fclose(file);
+		return false;
+	}
+
+	// Validation checks for magic value and world version. 
+	if (header.magic != WORLD_FILE_MAGIC) {
+		fprintf(stderr, "[LOAD_WORLD] Bad magic value: 0x%08X.\n", header.magic);
+		fclose(file);
+		return false;
+	}
+	
+	if (header.version != WORLD_FILE_VERSION) {
+		fprintf(stderr, "[LOAD_WORLD] Version mismatch: got %u, expected %u.\n", header.version,
+			WORLD_FILE_VERSION);
+		fclose(file);
+		return false;
+	}
+
+	// Initialize the world structure with the arena.
+	init_world(world, arena, header.screen_count, header.screen_width, header.screen_height);
+
+	// Reading the tiles directly into the arena-backed array.
+	u32 tile_count = header.screen_count * (u32)(header.screen_width * header.screen_height);
+
+	if (fread(world->tiles.data, sizeof(Tile), tile_count, file) != tile_count) {
+        fprintf(stderr, "[LOAD_WORLD] Failed to read tile data.\n");
+        fclose(file);
+        return false;
+    }
+
+    // tiles.count was set by init_world, data is now populated
+    fclose(file);
+    return true;
+}
+
 void init_world(World *world, Arena *arena, u32 screen_count, u32 width, u32 height) {
 	assert(arena != nullptr);
 	assert(arena->base != nullptr);
@@ -16,8 +105,10 @@ void init_world(World *world, Arena *arena, u32 screen_count, u32 width, u32 hei
 
 	array_init(&world->screens, arena, screen_count);
 	array_init(&world->tiles, arena, (screen_count * world->tiles_per_screen));
-	
+
+#if 0
 	printf("tiles.data: %p\n", world->tiles.data);
+#endif
 	assert((uintptr_t)world->tiles.data > 0x10000);
 
     // Initialize screens with correct tile offsets

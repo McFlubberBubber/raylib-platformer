@@ -9,13 +9,18 @@ static void handle_global_inputs(Application *app) {
 		push_command_simple(game, CMD_TOGGLE_DEBUG_MODE);
 	}
 	
-	// Console stuff
+	// Console stuff.
 	if (IsKeyPressed(KEY_GRAVE)) { // Tilda key.
 		if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
 			push_command_simple(game, CMD_TOGGLE_BIG_CONSOLE);
 		} else {
 			push_command_simple(game, CMD_TOGGLE_SMALL_CONSOLE);
 		}
+	}
+
+	// Editor stuff.
+	if (IsKeyPressed(KEY_BACKSPACE)) {
+		push_command_simple(game, CMD_TOGGLE_EDITOR_MODE);
 	}
 }
 

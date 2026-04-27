@@ -1,6 +1,7 @@
 #include "camera.h"
 
 #include "raylib.h"
+#include "raymath.h"
 #include "application.h"
 
 void init_camera(Camera2D *camera) {
@@ -31,9 +32,12 @@ void update_camera(Camera2D *camera, Input *input) {
 	
 	const float movement_speed = 5.0f;
 
-	camera->offset.y += (input->camera_movement.y * movement_speed); 
-	camera->offset.x += (input->camera_movement.x * movement_speed);
-	camera->zoom = input->camera_zoom;    
+	camera->target.y += (input->camera_movement.y * movement_speed); 
+	camera->target.x += (input->camera_movement.x * movement_speed);
+
+	camera->zoom += (input->camera_zoom * 0.25f);
+	if (camera->zoom >= 10.0f) camera->zoom = 10.0f;
+	if (camera->zoom <= 1.0f)  camera->zoom = 1.0f;
 }
 
 // @TODO: This needs to get changed in the future since we just reset to 0,0.

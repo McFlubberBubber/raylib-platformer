@@ -99,7 +99,7 @@ static void poll_menu_inputs(Game *game) {
 static void poll_editor_inputs(Application *app) {
 	Input *input = &app->input;
 	input->camera_movement = { 0.0f, 0.0f };
-	input->camera_zoom     = 0.0f;
+	input->camera_zoom     = GetMouseWheelMove();
 
 	// Keyboard inputs.
 	if (IsKeyDown(KEY_A)) {
@@ -113,14 +113,6 @@ static void poll_editor_inputs(Application *app) {
 	}
 	if (IsKeyDown(KEY_S)) {
 		input->camera_movement.y =  1.0f;
-	}
-	
-	// Mouse inputs.
-	if (GetMouseWheelMove() <= 0.0f) {
-		input->camera_zoom = -1.0f;
-	}
-	if (GetMouseWheelMove() >= 0.0f) {
-		input->camera_zoom = 1.0f;
 	}
 }
 

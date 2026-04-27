@@ -12,11 +12,14 @@ static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
 
 	Player *player = &game->player;
-	const int font_size = 18;
+	const Font *font = get_font(FONT_CONSOLE);
+
+	const int font_size = 20;
+	const int spacing   = 0;
 	const int text_x    = 0;
 	const int text_y    = 20;
-	const int center_x      = g_app->game_width  / 2;
-	const int center_y      = g_app->game_height / 2;
+	const int center_x  = (int)g_app->game_width  * 0.5f;
+	const int center_y  = (int)g_app->game_height * 0.5f;
 	
 	char state_text[32];
 	switch(player->state) {
@@ -50,21 +53,25 @@ static void draw_debug_overlay(Game *game) {
 		break;
 	}
 	}
-	DrawText(state_text, text_x, text_y, font_size, WHITE); // (0, 0) is the top-left.
-
-	// Drawing grounded state text.
+	Vector2 pos = { text_x, text_y };
+	DrawTextEx(*font, state_text, pos, font_size, spacing, WHITE);
+	
+// Drawing grounded state text.
 	char grounded_text[32];
 	if (player->is_grounded) snprintf(grounded_text, sizeof(grounded_text), "PLAYER: IS GROUNDED");
 	else                     snprintf(grounded_text, sizeof(grounded_text), "PLAYER: NOT GROUNDED");
-	DrawText(grounded_text, text_x, (text_y + font_size), font_size, WHITE);
+	pos.y = text_y + font_size;
+	DrawTextEx(*font, grounded_text, pos, font_size, spacing, WHITE);
 
 	// Drawing player positions based on screen_space coords.
 	char screen_space_x[16];
 	snprintf(screen_space_x, sizeof(screen_space_x), "PLAYER_X: %2f", player->pos.x);
-	DrawText(screen_space_x, text_x, (text_y + (font_size * 2)), font_size, WHITE);
+	pos.y = text_y + (font_size * 2);
+	DrawTextEx(*font, screen_space_x, pos, font_size, spacing, WHITE);
 	char screen_space_y[16];
 	snprintf(screen_space_y, sizeof(screen_space_y), "PLAYER_Y: %2f", player->pos.y);
-	DrawText(screen_space_y, text_x, (text_y + (font_size * 3)), font_size, WHITE);
+	pos.y = text_y + (font_size * 3);
+	DrawTextEx(*font, screen_space_y, pos, font_size, spacing, WHITE);
 
 	char game_state[32];
 	switch(game->state) {
@@ -89,8 +96,9 @@ static void draw_debug_overlay(Game *game) {
 		break;
 	}
 	}
-	DrawText(game_state, text_x, (text_y + (font_size * 4)), font_size, WHITE);
-
+	pos.y = text_y + (font_size * 4);
+	DrawTextEx(*font, game_state, pos, font_size, spacing, WHITE);
+	
 	char menu_page[24];
 	switch(game->menu.current_page) {
 	case PAGE_MAIN: {
@@ -110,15 +118,15 @@ static void draw_debug_overlay(Game *game) {
 		break;
 	}
 	}
-	DrawText(menu_page, text_x, (text_y + (font_size * 5)), font_size, WHITE);
+	pos.y = text_y + (font_size * 5);
+	DrawTextEx(*font, menu_page, pos, font_size, spacing, WHITE);
 }
 
 static void draw_ui(Game *game) {
 	const int font_size = 18;
-	const int center_x      = g_app->game_width  / 2;
-	const int center_y      = g_app->game_height / 2;
+	const int center_x = g_app->game_width  / 2;
+	const int center_y = g_app->game_height / 2;
 	
-
 	Player *player = &game->player;
 	if (player->health == 0) {
 		const char *death = "YOU ARE DEAD.";

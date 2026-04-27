@@ -2,9 +2,11 @@
 #include "raylib.h"
 
 #include <stdio.h> 		 // For printing stuff. 
+
 #include "application.h" // For accessing the app state.
 #include "input.h"       // Input-handling...
 #include "general.h"
+#include "editor.h"
 
 static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
@@ -136,8 +138,6 @@ static void draw_ui(Game *game) {
 static void draw_game_environment(Game *game) {
 	ClearBackground(BLACK);
 
-	// update_camera(game);
-
 	// Drawing actual world space stuff.
 	BeginMode2D(game->camera);
 	draw_world(&game->world);
@@ -148,18 +148,6 @@ static void draw_game_environment(Game *game) {
 	draw_ui(game);
 }
 
-static void draw_editor_view(Game *game) {
-	ClearBackground(BLACK);
-
-	// Drawing actual world space stuff.
-	BeginMode2D(game->camera);
-	draw_world(&game->world);
-	draw_player(&game->player);
-	EndMode2D();
-	
-	// @TODO: Do this.
-	// draw_editor_ui(game);
-}
 
 void init_game(Game *game) {
 	init_camera(&game->camera);
@@ -206,7 +194,7 @@ void update_game(Game *game, Input *input, float dt) {
 		}
 		
 		update_world(&game->world, &game->player, &game->camera, dt);
-		// update_camera(&game->camera);
+		update_camera(&game->camera, input);
 		update_player(&game->player, &game->world, input, dt);
 		break;
 	}
@@ -215,6 +203,7 @@ void update_game(Game *game, Input *input, float dt) {
 		// own camera system, and we want to be able to use our WASD keys to navigate the world.
 		// update_world(&game->world, &game->player, &game->camera, dt);
 		// update_player(&game->player, &game->world, input, dt);
+		update_camera(&game->camera, input);
 		break;
 	}
 	default: {
@@ -335,11 +324,14 @@ void process_command_list(Game *game) {
 		case CMD_TOGGLE_EDITOR_MODE: {
 			static GameState prev = game->state;
 			if (game->state != GAME_EDITOR) {
-				game->state = GAME_EDITOR;
 				printf("Toggling game state: GAME_EDITOR\n");
+				game->state = GAME_EDITOR;
+				ShowCursor();
 			} else if (game->state == GAME_EDITOR){
-				game->state = prev;
 				printf("Reverting to previous game state.\n");
+				game->state = prev;
+				reset_camera(&game->camera);
+				HideCursor();
 			}
 			break;
 		}
@@ -354,6 +346,7 @@ void process_command_list(Game *game) {
 void reset_game_state(Game *game) {
 #if 1
 	init_player(&game->player);
+	reset_camera(&game->camera);
 #else
 	auto player = &game->player;
 	player->pos.x = 0;

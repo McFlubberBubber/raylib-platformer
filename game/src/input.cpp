@@ -96,17 +96,51 @@ static void poll_menu_inputs(Game *game) {
 	}
 }
 
+static void poll_editor_inputs(Application *app) {
+	Input *input = &app->input;
+	input->camera_movement = { 0.0f, 0.0f };
+	input->camera_zoom     = 0.0f;
+
+	// Keyboard inputs.
+	if (IsKeyDown(KEY_A)) {
+		input->camera_movement.x = -1.0f;
+	}
+	if (IsKeyDown(KEY_D)) {
+		input->camera_movement.x =  1.0f;
+	}
+	if (IsKeyDown(KEY_W)) {
+		input->camera_movement.y = -1.0f;
+	}
+	if (IsKeyDown(KEY_S)) {
+		input->camera_movement.y =  1.0f;
+	}
+	
+	// Mouse inputs.
+	if (GetMouseWheelMove() <= 0.0f) {
+		input->camera_zoom = -1.0f;
+	}
+	if (GetMouseWheelMove() >= 0.0f) {
+		input->camera_zoom = 1.0f;
+	}
+}
+
+
 void poll_inputs(Application *app) {
 	Input *input = &app->input;
 	handle_global_inputs(app);
 
+	// Polling inputs based on the different game states.
 	if (app->game.console.state != CONSOLE_CLOSED) {
 		poll_console_inputs(&app->game);
 		return;
 	}
-
 	if (app->game.state == GAME_OPENING_MENU || app->game.state == GAME_MENU) {
 		poll_menu_inputs(&app->game);
+		return;
+	}
+	if (app->game.state == GAME_EDITOR) {
+		SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+		poll_editor_inputs(app);
 		return;
 	}
 
@@ -116,11 +150,10 @@ void poll_inputs(Application *app) {
 
 	// Player-specific inputs.
 	input->player_move_x = 0.0f;
-	
+
 	if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))  input->player_move_x = -1.0f;
 	if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) input->player_move_x =  1.0f;
-	
+
 	input->player_jump = IsKeyPressed(KEY_SPACE);
 
-	// @TODO: Editor inputs?
 }

@@ -84,6 +84,10 @@ void init_app(Application *app) {
 
 	SetTargetFPS(app->target_fps);
 	SetExitKey(KEY_Q);
+
+	HideCursor();
+	DisableCursor();
+
 	app->should_close = false;
 
 	app->game_render_target = LoadRenderTexture(app->game_width, app->game_height);

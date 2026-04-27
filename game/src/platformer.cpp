@@ -306,7 +306,7 @@ void process_command_list(Game *game) {
 		}
 		case CMD_TOGGLE_DEBUG_MODE: {
 			game->debug_mode = !game->debug_mode;
-			printf("Toggling debug mode\n");
+			printf("Toggling DEBUG_MODE. \n");
 			break;
 		}
 		case CMD_TOGGLE_BIG_CONSOLE: {

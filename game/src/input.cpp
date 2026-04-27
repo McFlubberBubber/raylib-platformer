@@ -19,7 +19,7 @@ static void handle_global_inputs(Application *app) {
 	}
 
 	// Editor stuff.
-	if (IsKeyPressed(KEY_BACKSPACE)) {
+	if (IsKeyPressed(KEY_HOME)) {
 		push_command_simple(game, CMD_TOGGLE_EDITOR_MODE);
 	}
 }

@@ -121,4 +121,23 @@ void array_reset(Array<T> *array) {
 	array->count = 0;
 }
 
+// Much like the Array<>, this String datatype will use a pre-existing arena to
+// handle allocations and whatnot. 
+struct String {
+	char *data;
+	u64   length;
+};
+
+String string_create(Arena *arena, const char *str);
+String string_view(char *data, u64 length);
+String string_concat(Arena *arena, String a, String b);
+String string_slice(String str, u64 start, u64 end);
+String string_format(Arena *arena, const char *fmt, ...);
+bool   string_comp(String a, String b); // Should this return an integer instead?
+
+const char *string_to_cstr(String str);
+
+// The resulting string point to read-only memory, so don't write to it!
+#define string_literal_create(s) String{(char *)(s), sizeof(s) - 1}
+
 #endif

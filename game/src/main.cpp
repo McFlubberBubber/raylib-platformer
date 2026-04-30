@@ -25,6 +25,8 @@ int main() {
 		update_app(&app);
 		process_command_list(&app.game);
 		draw_app(&app);
+
+		arena_reset(&app.game.temp_arena);
 	}
 
 	shutdown_app(&app);

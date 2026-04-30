@@ -156,3 +156,69 @@ bool string_comp(String a, String b) {
 const char *string_to_cstr(String str) {
 	return (const char *)str.data;
 }
+
+static void strbuild_append(Arena *arena, StringBuilder *sb, const char *data, u64 length) {
+	assert(arena && sb && data);
+	char *dest = (char *)arena_allocate(arena, length, alignof(char));
+	assert(dest);
+	if (sb->buffer.data == nullptr) {
+		sb->buffer.data = dest;
+	}
+
+	memcpy(dest, data, length);
+	sb->buffer.length += length;
+}
+
+void strbuild_append_string(Arena *arena, StringBuilder *sb, String str) {
+	strbuild_append(arena, sb, str.data, str.length);
+}
+
+void strbuild_append_cstring(Arena *arena, StringBuilder *sb, const char *data) {
+	assert(data);
+	u64 length = 0;
+	while (data[length]) length++;
+	strbuild_append(arena, sb, data, length);
+}
+
+void strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...) {
+	assert(arena && sb && fmt);
+	va_list args;
+
+	va_start(args, fmt);
+	int needed = vsnprintf(nullptr, 0, fmt, args);
+	va_end(args);
+
+	assert(needed > 0);
+	char *dest = (char *)arena_allocate(arena, (u64)(needed + 1), alignof(char));
+	assert(dest);
+
+	va_start(args, fmt);
+	vsnprintf(dest, (u64)(needed + 1), fmt, args);
+	va_end(args);
+
+	if (sb->buffer.data == nullptr) {
+		sb->buffer.data = dest;
+	}
+	sb->buffer.length += (u64)needed;
+}
+
+String strbuild_terminate(Arena *arena, StringBuilder *sb) {
+	char *null_term = (char *)arena_allocate(arena, 1, alignof(char));
+	assert(null_term);
+	*null_term = '\0';
+	return sb->buffer;
+}
+
+void strbuild_reset(StringBuilder *sb) {
+	sb->buffer.data   = nullptr;
+	sb->buffer.length = 0;
+}
+
+void draw_text_ex_with_string(const Font *font, String str, Vector2 pos, s32 font_size, s32 spacing, Color color) {
+	if (str.data) {
+		DrawTextEx(*font, string_to_cstr(str), pos, font_size, spacing, color);
+	} else {
+		DrawTextEx(*font, "ERROR!", pos, font_size, spacing, RED);
+		fprintf(stderr, "[DRAW_TEXT_WITH_STRING] Received null String at pos (%.1f, %.1f)\n", pos.x, pos.y);
+	}
+}

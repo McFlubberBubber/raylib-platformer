@@ -26,6 +26,10 @@ typedef double float64;
 
 const float32 PI_32 = 3.14159265359f;
 
+struct Font;
+struct Vector2;
+struct Color;
+
 #define kilobytes(value) ((value) * 1024ULL)
 #define megabytes(value) ((value) * 1024ULL * 1024ULL)
 #define gigabytes(value) ((value) * 1024ULL * 1024ULL * 1024ULL)
@@ -139,5 +143,22 @@ const char *string_to_cstr(String str);
 
 // The resulting string point to read-only memory, so don't write to it!
 #define string_literal_create(s) String{(char *)(s), sizeof(s) - 1}
+
+// This StringBuilder would break if we called arena_allocate() in between each append.
+// Therefore, we must finish all appends with the StringBuider before doing any more arena
+// allocations, or else the memory will not be contigious!
+struct StringBuilder {
+	String buffer;
+};
+
+void   strbuild_append_string(Arena *arena, StringBuilder *sb, String s);
+void   strbuild_append_cstring(Arena *areana, StringBuilder *sb, const char *cstr);
+void   strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...);
+String strbuild_terminate(Arena *arena, StringBuilder *sb);
+void   strbuild_reset(StringBuilder *sb);
+
+// Raylib expects a null-terminated string here, so we can't pass a view into a string unless we
+// manually put the null-terminator.
+void draw_text_ex_with_string(const Font *font, String str, Vector2 pos, s32 font_size, s32 spacing, Color color);
 
 #endif

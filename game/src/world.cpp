@@ -19,9 +19,10 @@ bool save_world(const World *world) {
 	WorldFileHeader header = {};
 	header.magic   		 = WORLD_FILE_MAGIC;
 	header.version 		 = WORLD_FILE_VERSION;
-	header.screen_width  = (u16)world->screen_width;
-	header.screen_height = (u16)world->screen_height;
-	header.screen_count  = (u16)world->screens.count;
+	header.screen_width  = (u16)world->screen_width_in_tiles;
+	header.screen_height = (u16)world->screen_height_in_tiles;
+	header.grid_width    = (u16)world->grid_width;
+	header.grid_height   = (u16)world->grid_height;
 
 	if (fwrite(&header, sizeof(header), 1, file) != 1) {
 		fprintf(stderr, "[SAVE_WORLD] Failed to write to header.\n");
@@ -29,7 +30,7 @@ bool save_world(const World *world) {
 		return false;
 	}
 
-	u32 tile_count = world->screens.count * world->tiles_per_screen;
+	u32 tile_count = world->grid_width * world->grid_height * world->tiles_per_screen;
 	if (fwrite(world->tiles.data, sizeof(Tile), tile_count, file) != tile_count) {
 		fprintf(stderr, "[SAVE_WORLD] Failed to write tile data.\n");
 		fclose(file);
@@ -69,18 +70,16 @@ bool load_world(World *world, Arena *arena) {
 	}
 	
 	if (header.version != WORLD_FILE_VERSION) {
-		fprintf(stderr, "[LOAD_WORLD] Version mismatch: got %u, expected %u.\n", header.version,
-			WORLD_FILE_VERSION);
+		fprintf(stderr, "[LOAD_WORLD] Version mismatch: got %u, expected %u.\n", header.version, WORLD_FILE_VERSION);
 		fclose(file);
 		return false;
 	}
 
 	// Initialize the world structure with the arena.
-	init_world(world, arena, header.screen_count, header.screen_width, header.screen_height);
+	init_world(world, arena, header.grid_width, header.grid_height, header.screen_width, header.screen_height);
 
 	// Reading the tiles directly into the arena-backed array.
-	u32 tile_count = header.screen_count * (u32)(header.screen_width * header.screen_height);
-
+	u32 tile_count = header.grid_width * header.grid_height * (header.screen_width * header.screen_height);
 	if (fread(world->tiles.data, sizeof(Tile), tile_count, file) != tile_count) {
         fprintf(stderr, "[LOAD_WORLD] Failed to read tile data.\n");
         fclose(file);
@@ -92,106 +91,64 @@ bool load_world(World *world, Arena *arena) {
     return true;
 }
 
-void init_world(World *world, Arena *arena, u32 screen_count, u32 width, u32 height) {
+void load_placeholder_world(World *world, Arena *arena) {
+	const u32 grid_width = 5;
+	const u32 grid_height = 1;
+	const u32 width_in_tiles  = (u32)(g_app->game_width / world->tile_size);
+	const u32 height_in_tiles = (u32)(g_app->game_height / world->tile_size); 
+	init_world(world, arena, grid_width, grid_height, width_in_tiles, height_in_tiles);
+	
+	for (u32 gy = 0; gy < world->grid_height; ++gy) {
+		for (u32 gx = 0; gx < world->grid_width; ++gx) {
+			Screen *screen = world_get_screen(world, (s32)gx, (s32)gy);
+			if (!screen) continue;
+
+			u32 bottom_row = screen->tile_offset + (world->screen_height_in_tiles - 1) * world->screen_width_in_tiles;
+			for (u32 x = 0; x < world->screen_width_in_tiles; ++x) {
+				world->tiles.data[bottom_row + x].type = TILE_SOLID; 
+			}
+		}
+	}
+}
+
+void init_world(World *world, Arena *arena, u32 grid_width, u32 grid_height, u32 width_in_tiles, u32 height_in_tiles) {
 	assert(arena != nullptr);
 	assert(arena->base != nullptr);
 	
 	world->arena = arena;
+	
+	world->screen_width_in_tiles  = width_in_tiles;
+	world->screen_height_in_tiles = height_in_tiles;
+	world->tiles_per_screen = width_in_tiles * height_in_tiles;
+	world->tile_size = 32.0f;
 
-	world->screen_width  = width;
-	world->screen_height = height;
+	world->grid_width  = grid_width;
+	world->grid_height = grid_height;
+	
+	world->current_screen_x = 0;
+	world->current_screen_y = 0;
 
-	world->tiles_per_screen = width * height;
-
+	u32 screen_count = grid_width * grid_height;
 	array_init(&world->screens, arena, screen_count);
 	array_init(&world->tiles, arena, (screen_count * world->tiles_per_screen));
 
-#if 0
-	printf("tiles.data: %p\n", world->tiles.data);
-#endif
 	assert((uintptr_t)world->tiles.data > 0x10000);
 
-    // Initialize screens with correct tile offsets
-    for (u32 i = 0; i < screen_count; ++i) {
-        Screen s = {};
-        s.tile_offset = i * world->tiles_per_screen;
-        array_push(&world->screens, s);
-    }
-
-    // Zero out all tiles
-    world->tiles.count = world->tiles.capacity;
-    for (u32 i = 0; i < world->tiles.capacity; ++i) {
-        world->tiles.data[i] = {};
-    }
-
-	world->tile_size = 32.0f; // @Hardcode.
-	
-	world->current_screen_index = 0;
-	world->target_screen_index  = 0;
-}
-
-void update_world(World *world, Player *player, Camera2D *camera, float dt) {
-	const float half_screen = world->screen_width * 0.5f;
-
-	const float left_boundary  = camera->target.x - half_screen;
-	const float right_boundary = camera->target.x + half_screen;
-
-	const float player_center = player->pos.x + (player->sprite.width *  0.5f);
-	const float buffer = 2.0f;
-
-	s32 target = world->current_screen_index;
-
-	if (player_center > (right_boundary + buffer) &&
-		world->current_screen_index < (s32)world->screens.count - 1) {
-		target = world->current_screen_index + 1;
-	} else if (player_center < (left_boundary - buffer) && world->current_screen_index > 0) {
-		target = world->current_screen_index - 1;
-	}
-
-	if (target != world->current_screen_index) {
-		world->current_screen_index = target;
-		world->target_screen_index  = target;
-	}
-
-	// Camera smoothing towards the next screen center.
-	const float lerp_speed = 12.0f;
-	float target_camera_x = target * world->screen_width;
-
-	camera->target.x += (target_camera_x - camera->target.x) * lerp_speed * dt;
-
-	if (fabsf(camera->target.x - target_camera_x) < 0.5f) {
-		camera->target.x = target_camera_x; // Instant snap when at certain threshold.
-	}
-}
-
-void draw_world(World *world) {
-	const float line_thickness = 2.0f;
-//	const float tile_size = 32.0f;
-
-	s32 screen_index = world->current_screen_index;
-	Screen *screen   = &world->screens.data[screen_index];
-
-	assert(screen_index >= 0 && screen_index < world->screens.count);
-
-	u32 base  = screen->tile_offset;
-	u32 count = world->tiles_per_screen;
-
-	for (u32 i = 0; i < count; ++i) {
-		Tile *tile = &world->tiles.data[base + i];
-		if (tile->type == TILE_EMPTY) continue;
-
-		Vector2 pos = tile_index_to_world(world, screen_index, i);
-
-		// Tile visual specifications.
-		Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
-		Color color = BLUE;
-	
-		switch (tile->type) {
-		case TILE_SOLID: { color = DARKGRAY; break; }
-		case TILE_SPIKE: { color = PURPLE;   break; }
+    // Initialize screens with 2D grid coords.
+	for (u32 y = 0; y < grid_height; ++y) {
+		for (u32 x = 0; x < grid_width; ++x) {
+			Screen screen = {};
+			screen.grid_x = (s32)x;
+			screen.grid_y = (s32)y;
+			screen.tile_offset = (y * grid_width + x) * world->tiles_per_screen;
+			screen.is_valid = true;
+			array_push(&world->screens, screen);
 		}
-		
-		DrawRectangleLinesEx(rect, line_thickness, color);
+	}
+
+	world->tiles.count = world->tiles.capacity;
+	for (u32 i = 0; i < world->tiles.count; ++i) {
+		world->tiles.data[i] = {};
 	}
 }
 
@@ -199,53 +156,98 @@ void cleanup_world(World *world) {
 	// Not needed?
 }
 
-Vector2 tile_index_to_world(const World *world, u32 screen_index, u32 tile_index) {
-	u32 x = tile_index % world->screen_width;
-	u32 y = tile_index / world->screen_width;
-
-	Vector2 result = { 0 };
-	result.x = ((screen_index * world->screen_width) + x) * world->tile_size;
-	result.y = y * world->tile_size;
+void update_world(World *world, Vector2 player_center) {
+	float screen_pixel_width  = world_screen_pixel_width(world);	
+	float screen_pixel_height = world_screen_pixel_height(world);
 	
+	s32 new_screen_x = (s32)floorf(player_center.x / screen_pixel_width);
+	s32 new_screen_y = (s32)floorf(player_center.y / screen_pixel_height);
+
+	// Clamping to a valid grid range.
+	new_screen_x = (s32)fmaxf(0.0f, fminf(new_screen_x, (float)world->grid_width - 1));
+	new_screen_y = (s32)fmaxf(0.0f, fminf(new_screen_y, (float)world->grid_height - 1));
+
+	world->current_screen_x = new_screen_x;
+	world->current_screen_y = new_screen_y;
+}
+
+void draw_world(const World *world) {
+    const float line_thickness = 2.0f;
+
+    s32 screen_index = world->current_screen_y * world->grid_width + world->current_screen_x;
+    Screen *screen   = &world->screens.data[screen_index];
+
+    assert(screen->is_valid);
+
+    u32 base  = screen->tile_offset;
+    u32 count = world->tiles_per_screen;
+
+    for (u32 i = 0; i < count; ++i) {
+        Tile *tile = &world->tiles.data[base + i];
+        if (tile->type == TILE_EMPTY) continue;
+
+        Vector2 pos  = tile_index_to_world(world, screen_index, i);
+        Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
+        Color color  = BLUE;
+
+        switch (tile->type) {
+        case TILE_SOLID: { color = DARKGRAY; break; }
+        case TILE_SPIKE: { color = PURPLE;   break; }
+        }
+
+        DrawRectangleLinesEx(rect, line_thickness, color);
+    }
+}
+
+Screen *world_get_screen_from_pos(const World *world, Vector2 world_pos) {
+	float screen_pixel_width  = world_screen_pixel_width(world);
+	float screen_pixel_height = world_screen_pixel_height(world);
+
+	s32 gx = (s32)floorf(world_pos.x / screen_pixel_width);
+	s32 gy = (s32)floorf(world_pos.y / screen_pixel_height);
+	return world_get_screen(world, gx, gy);
+}
+
+Vector2 tile_index_to_world(const World *world, u32 screen_index, u32 tile_index) {
+	u32 x = tile_index % world->screen_width_in_tiles;
+	u32 y = tile_index / world->screen_width_in_tiles;
+
+	u32 screen_gx = screen_index % world->grid_width;
+	u32 screen_gy = screen_index / world->grid_width;
+	
+	Vector2 result = { 0 };	
+	result.x = ((screen_gx * world->screen_width_in_tiles) + x) * world->tile_size;
+    result.y = ((screen_gy * world->screen_height_in_tiles) + y) * world->tile_size;
 	return result;
 }
 
-void world_to_tile(World *world, float world_x, float world_y, u32 *screen,
-						  u32 *out_x, u32 *out_y) {
-	float screen_world_width = world->screen_width * world->tile_size;
-	*screen = (u32)floorf(world_x / screen_world_width);
-	float local_x = world_x - (*screen * screen_world_width);
+// @TODO.
+void world_pos_to_tile(const World *world, Vector2 world_pos, u32 *out_screen, u32 *out_x, u32 *out_y) {
 
-	*out_x = (u32)(local_x / world->tile_size);
-	*out_y = (u32)(world_y / world->tile_size);
 }
 
 bool is_solid(const World *world, float world_x, float world_y) {
-	float screen_world_width = world->screen_width * world->tile_size;
+	Screen *screen = world_get_screen_from_pos(world, {world_x, world_y});
+    if (!screen) return true; // null or out of bounds = solid boundary
 
-	s32 screen = (s32)(world_x / screen_world_width); // Find which screen we are in.
-	if (screen < 0 || screen >= (s32)world->screens.count) {
-		return false; // Treat as out of bounds.
-	}
+    float screen_pixel_width  = world_screen_pixel_width(world);
+    float screen_pixel_height = world_screen_pixel_height(world);
 
-	// Converting to local screen space.
-	float local_x = world_x - (screen * screen_world_width);
-	float local_y = world_y;
+    float local_x = world_x - (screen->grid_x * screen_pixel_width);
+    float local_y = world_y - (screen->grid_y * screen_pixel_height);
 
-	// Convert to tile coordinates.
-	s32 tile_x = (s32)(local_x / world->tile_size);
-	s32 tile_y = (s32)(local_y / world->tile_size);
+    s32 tile_x = (s32)(local_x / world->tile_size);
+    s32 tile_y = (s32)(local_y / world->tile_size);
 
-	// Bounds checking.
-	if (tile_x < 0 || tile_x >= (s32)world->screen_width ||
-		tile_y < 0 || tile_y >= (s32)world->screen_height) {
-		return false;
-	}
+    if (tile_x < 0 || tile_x >= (s32)world->screen_width_in_tiles ||
+        tile_y < 0 || tile_y >= (s32)world->screen_height_in_tiles) {
+        return true; // out of screen bounds = solid
+    }
 
-	// Fetch tile index.
-	u32 tile_index = get_tile_index(world, screen, (u32)tile_x, (u32)tile_y);
-	if (tile_index >= world->tiles.count) return false;
-		
-	Tile *tile = &world->tiles.data[tile_index];
-	return (tile->type == TILE_SOLID || tile->type == TILE_SPIKE);
+    u32 screen_index = screen->grid_y * world->grid_width + screen->grid_x;
+    u32 tile_index   = get_tile_index(world, screen_index, (u32)tile_x, (u32)tile_y);
+    if (tile_index >= world->tiles.count) return true;
+
+    Tile *tile = &world->tiles.data[tile_index];
+    return (tile->type == TILE_SOLID || tile->type == TILE_SPIKE);
 }

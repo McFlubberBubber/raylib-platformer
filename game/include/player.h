@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include "raylib.h"
+#include "general.h"
 
 struct World;
 struct Input;
@@ -20,26 +21,20 @@ enum PlayerState {
 	PLAYER_STATE_COUNT
 };
 
-// @TODO: There is a data dupe problem here, which the sprite.x and y obviously needs to sync up
-// with the pos.x and y since they use rects (currently). But if the rect already has an x and y
-// then we can just use that vector in the sprite rather than bundling up another vector within the
-// player struct.
 struct Player {
 	Rectangle sprite;
-	Vector2 pos;
 	Vector2 vel;
 
 	PlayerState state;
 	PlayerState prev_state;
 	
-	bool is_grounded; // Temp?
+	bool is_grounded;
 	float coyote;
-
-	int health;
+	s32 health;
 };
 
-void init_player(Player *player);
+void init_player(Player *player, const World *world);
 void update_player(Player *player, World *world, Input *input, float dt);
-void draw_player(Player *player);
+void draw_player(const Player *player);
 
 #endif

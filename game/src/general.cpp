@@ -153,6 +153,10 @@ bool string_comp(String a, String b) {
 	return memcmp(a.data, b.data, a.length) == 0;
 }
 
+// This function ASSUMES that the string we pass into this procedure actually has a null-terminated
+// string at the end of it. Most of the regular string procedures that are within this file do ensure
+// we have a null-terminator at the end of the string, EXCEPT for the StringBuilder, as of
+// 2/05/2026.
 const char *string_to_cstr(String str) {
 	return (const char *)str.data;
 }
@@ -202,6 +206,10 @@ void strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...) {
 	sb->buffer.length += (u64)needed;
 }
 
+// Since the StringBuilder does not put in the null-terminator like our String datatype already
+// does, we need to ensure that we call this function to slap that terminator once we are done
+// building our string. It kinda sucks, but if we do plan on eventually using the string to render
+// stuff on raylib (which expects null-terminated strings), we need to do this...
 String strbuild_terminate(Arena *arena, StringBuilder *sb) {
 	char *null_term = (char *)arena_allocate(arena, 1, alignof(char));
 	assert(null_term);

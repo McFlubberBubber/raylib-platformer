@@ -20,58 +20,90 @@ struct Tile {
 
 struct Screen {
 	u32 tile_offset; // @NOTE: This assumes every screen size has the same offset...
+	s32 grid_x;
+	s32 grid_y;
+	bool is_valid;
+	// 3 bytes of padding here...
 };
 
 struct World {
 	Arena *arena;
 
-	u32 screen_width;
-	u32 screen_height;
-	u32 tiles_per_screen; // Width * Height.
+	// The following dimensions are in tiles, not in pixels.
+	u32 screen_width_in_tiles;
+	u32 screen_height_in_tiles;
+	u32 tiles_per_screen; 	 // Width * Height.
+	float tile_size = 32.0f; 
 
-	Array<Screen> screens;
-	Array<Tile> tiles;
-	
-	float tile_size; // @Temporary? 
+	u32 grid_width;			 // In screens.
+	u32 grid_height;		 // In screens.
+	Array<Screen> screens;	 // Count == grid_width * grid_height.
+	Array<Tile> tiles;		 // Count == grid_width * grid_height * tiles_per_screen.
 
-	s32 current_screen_index;
-	s32  target_screen_index;
+	// Grid coordinates, not pixel or tile.
+	s32 current_screen_x;
+	s32 current_screen_y;
 };
 
 #pragma pack(push, 1)
 struct WorldFileHeader {
-	u32 magic;
-	u16 version;
+	u32 magic;			// 4 bytes.
+	u16 version;		// 2 bytes.
 	
-	u16 screen_width;
-	u16 screen_height;
-	u16 screen_count;
+	u16 screen_width;   // 2 bytes - in tiles.
+	u16 screen_height;  // 2 bytes - in tiles.
 	
-	u32 reserved;
-};
+	u16 grid_width;     // 2 bytes - how many screens wide.
+	u16 grid_height;	// 2 bytes - how many screens tall.
+	u16 reserved;		// 2 bytes of padding.
+}; 						// Should be a total of 16 bytes.
 #pragma pack(pop)
 
 #define WORLD_FILE_MAGIC 0x57524C44 // Hex value reads "WRLD".
-#define WORLD_FILE_VERSION 1
+#define WORLD_FILE_VERSION 2
 
-static_assert(sizeof(Tile)            == 4,  "Tile size changed! serialization error.");
+static_assert(sizeof(Tile) == 4,  "Tile size changed! serialization error.");
 static_assert(sizeof(WorldFileHeader) == 16, "Header layout changed! Serialization error.");
 
 bool save_world(const World *world);
 bool load_world(World *world, Arena *arena); 
-
-void init_world(World *world, Arena *arena, u32 screen_count, u32 width, u32 height);
-void update_world(World *world, Player *player, Camera2D *camera, float dt);
-void draw_world(World *world);
+void load_placeholder_world(World* world, Arena *arena);
+void init_world(World *world, Arena *arena, u32 grid_width, u32 grid_height, u32 width_in_tiles, u32 height_in_tiles);
 void cleanup_world(World *world);
 
-// Lookup functions.
+void update_world(World *world, Vector2 player_center);
+
+void draw_world(const World *world);
+
+// Coordinate utils.
 inline u32 get_tile_index(const World *world, u32 screen_index, u32 x, u32 y) {
-	return world->screens.data[screen_index].tile_offset + (y * world->screen_width + x);
+	return world->screens.data[screen_index].tile_offset + (y * world->screen_width_in_tiles + x);
 }
 
+// Takes grid coordinates.
+inline Screen *world_get_screen(const World *world, s32 grid_x, s32 grid_y) {
+    if (grid_x < 0 || grid_x >= (s32)world->grid_width ||
+        grid_y < 0 || grid_y >= (s32)world->grid_height) {
+        return nullptr; // Out of bounds.
+    }
+    Screen *s = &world->screens.data[grid_y * world->grid_width + grid_x];
+    return s->is_valid ? s : nullptr; // Null screen.
+}
+Screen *world_get_screen_from_pos(const World *world, Vector2 world_pos);
+
+// Pixel-space helpers, derived from tile dimensions
+inline float world_screen_pixel_width(const World *world) {
+    return world->screen_width_in_tiles * world->tile_size;
+}
+inline float world_screen_pixel_height(const World *world) {
+    return world->screen_height_in_tiles * world->tile_size;
+}
+
+// Returns pixel-space pos of a tile.
 Vector2 tile_index_to_world(const World *world, u32 screen_index, u32 tile_index);
-void world_to_tile(const World *world, Vector2 world_pos, u32 *screen, u32 *out_x, u32 *out_y);
+// Converts pixel space to world coords.
+void world_pos_to_tile(const World *world, Vector2 world_pos, u32 *out_screen, u32 *out_x, u32 *out_y);
+
 bool is_solid(const World *world, float world_x, float world_y);
 
 #endif

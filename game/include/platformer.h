@@ -9,6 +9,7 @@
 #include "player.h"
 #include "camera.h"
 #include "console.h"
+#include "editor.h"
 
 struct Input;
 
@@ -46,23 +47,32 @@ struct GameCommand {
 	} data;
 };
 
-struct Game {
+struct GameSession {
 	Arena world_arena;
+
+	World world;
+	Camera_2D camera;
+	Player player;
+	Editor editor;
+};
+
+struct Game {
 	Arena temp_arena;
 
 	GameState state = GAME_OPENING_MENU;
 	GameCommand pending_commands[MAX_COMMAND_COUNT] = {};
-	int command_count = 0;
+	s32 command_count = 0;
+	
+	GameSession session;
 
 	Menu menu;
-	World world = {};
-	Player player;
-	Camera2D camera;
-
 	Console console = {};
 
 	bool debug_mode = false;
 };
+
+void init_game_session(GameSession* session);
+void cleanup_game_session(GameSession *session);
 
 void init_game(Game *game);
 void update_game(Game *game, Input *input, float dt);

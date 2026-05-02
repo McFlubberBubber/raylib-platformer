@@ -114,6 +114,13 @@ static void poll_editor_inputs(Application *app) {
 	if (IsKeyDown(KEY_S)) {
 		input->camera_movement.y =  1.0f;
 	}
+
+	if (IsKeyPressed(KEY_LEFT)) {
+		cycle_editor_mode(&app->game.session.editor, false);
+	}
+	if (IsKeyPressed(KEY_RIGHT)) {
+		cycle_editor_mode(&app->game.session.editor, true);
+	}
 }
 
 

@@ -4,63 +4,69 @@
 #include "raymath.h"
 #include "application.h"
 
-void init_camera(Camera2D *camera) {
-	const Vector2 CAMERA_ORIGIN  = { 0, 0 };
-	const Vector2 CAMERA_OFFSET = {
-		(float)(g_app->game_width / 2), (float)(g_app->game_height / 2)
-	};
-	const float CAMERA_ROTATION = 0.0f;
-	const float CAMERA_ZOOM     = 1.0f;
+void init_camera(Camera_2D *camera, const World *world) {
+	float screen_pixel_width = world_screen_pixel_width(world);
+	float screen_pixel_height = world_screen_pixel_height(world);
 
-	camera->target.x = CAMERA_ORIGIN.x;
-	camera->target.y = CAMERA_ORIGIN.y;
-	
-    camera->offset.x = CAMERA_OFFSET.x;
-	camera->offset.y = CAMERA_OFFSET.y;
-    
-	camera->rotation = CAMERA_ROTATION;
-    camera->zoom     = CAMERA_ZOOM;
+	// Start centered at 0, 0 on the grid.
+	camera->raylib_cam.target.x = screen_pixel_width * 0.5f;
+	camera->raylib_cam.target.y = screen_pixel_height * 0.5f;
+	camera->raylib_cam.offset   = {g_app->game_width * 0.5f, g_app->game_height * 0.5f};
+	camera->raylib_cam.rotation = 0;
+	camera->raylib_cam.zoom     = 1.0f;
+
+	camera->is_transitioning = false;
+	camera->target_world_pos = camera->raylib_cam.target;
+	camera->lerp_speed       = 12.0f;
 }
 
-// We only do things in this procedure when we are in editor mode, but we should probably be doing
-// stuff here even when we are in game view.
-void update_camera(Camera2D *camera, Input *input) {
-	Game *game = &g_app->game;
-	if (game->state != GAME_EDITOR) {
-		return;
+// @NOTE: player_center may be used in the future for player trackig purposes.
+void update_camera(Camera_2D *camera, const World *world, Vector2 player_center, Input *input) {
+	float screen_pixel_width = world_screen_pixel_width(world);
+	float screen_pixel_height = world_screen_pixel_height(world);
+
+	float desired_x = (world->current_screen_x * screen_pixel_width) + screen_pixel_width * 0.5f;
+	float desired_y = (world->current_screen_y * screen_pixel_height) + screen_pixel_height * 0.5f;
+	
+	if (desired_x != camera->target_world_pos.x || desired_y != camera->target_world_pos.y) {
+		camera->target_world_pos = {desired_x, desired_y};
+		camera->is_transitioning = true;
 	}
-	
-	const float movement_speed = 5.0f;
 
-	camera->target.y += (input->camera_movement.y * movement_speed); 
-	camera->target.x += (input->camera_movement.x * movement_speed);
+	// Lerp towards the target.
+	float dt = g_app->dt;
+	if (camera->is_transitioning) {
+		camera->raylib_cam.target.x += (camera->target_world_pos.x - camera->raylib_cam.target.x) * camera->lerp_speed * dt;
+		camera->raylib_cam.target.y += (camera->target_world_pos.y - camera->raylib_cam.target.y) * camera->lerp_speed * dt;
 
-	camera->zoom += (input->camera_zoom * 0.25f);
-	if (camera->zoom >= 10.0f) camera->zoom = 10.0f;
-	if (camera->zoom <= 1.0f)  camera->zoom = 1.0f;
-}
-
-// @TODO: This needs to get changed in the future since we just reset to 0,0.
-void reset_camera(Camera2D *camera) {
-	init_camera(camera);
-}
-
-// @Cleanup: We don't even use this so it's currently dead code.
-void transition_camera(Camera2D *camera, Vector2 dest, float dt) {
-	const float CAMERA_LERP_SPEED = 12.0f;
-	Vector2 new_target = { dest.x * g_app->game_width, dest.y * g_app->game_height };
-
-	if (new_target.x != camera->target.x) {
-		camera->target.x += (new_target.x - camera->target.x) * CAMERA_LERP_SPEED * dt;
-		if (fabs(camera->target.x - new_target.x) < 0.5f) {
-			camera->target.x = new_target.x;
+		float dx = fabsf(camera->raylib_cam.target.x - camera->target_world_pos.x);
+		float dy = fabsf(camera->raylib_cam.target.y - camera->target_world_pos.y);
+		if (dx < 0.5f && dy < 0.5f) {
+			camera->raylib_cam.target = camera->target_world_pos;
+			camera->is_transitioning = false;
 		}
 	}
 
-	if (new_target.y != camera->target.y) {
-		camera->target.y += (new_target.y - camera->target.y) * CAMERA_LERP_SPEED * dt;
-		if (fabs(camera->target.y - new_target.y) < 0.5f) {
-			camera->target.y = new_target.y;
-		}
+	//
+	// Editor Camera Movements
+	//
+	if (input->camera_movement.x != 0.0f || input->camera_movement.y != 0.0f) {
+		const float pan_speed = 5.0f;
+		camera->raylib_cam.target.x += input->camera_movement.x * pan_speed;
+		camera->raylib_cam.target.y += input->camera_movement.y * pan_speed;
+	}
+
+	// 
+	// Editor Zoom
+	//
+	if (input->camera_zoom != 0.0f) {
+		camera->raylib_cam.zoom += input->camera_zoom * 0.25f;
+		if (camera->raylib_cam.zoom > 10.0f) camera->raylib_cam.zoom = 10.0f;
+		if (camera->raylib_cam.zoom < 0.1f)  camera->raylib_cam.zoom = 0.1f;
 	}
 }
+
+void reset_camera(Camera_2D *camera, const World *world) {
+	init_camera(camera, world);
+}
+

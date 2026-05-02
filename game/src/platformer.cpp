@@ -11,7 +11,7 @@
 static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
 
-	Player *player = &game->player;
+	Player *player = &game->session.player;
 	const Font *font = get_font(FONT_CONSOLE);
 
 	const int font_size = 30;
@@ -69,10 +69,10 @@ static void draw_debug_overlay(Game *game) {
 	strbuild_reset(&builder);
 	
 	// Drawing player positions.
-	String player_pos_x = string_format(&game->temp_arena, "PLAYER_X: %2f", player->pos.x); 
+	String player_pos_x = string_format(&game->temp_arena, "PLAYER_X: %2f", player->sprite.x); 
 	pos.y = text_y + (font_size * 2);
 	draw_text_ex_with_string(font, player_pos_x, pos, font_size, spacing, WHITE);
-	String player_pos_y = string_format(&game->temp_arena, "PLAYER_Y: %2f", player->pos.y); 
+	String player_pos_y = string_format(&game->temp_arena, "PLAYER_Y: %2f", player->sprite.y); 
 	pos.y = text_y + (font_size * 3);
 	draw_text_ex_with_string(font, player_pos_y, pos, font_size, spacing, WHITE);
 
@@ -135,7 +135,7 @@ static void draw_ui(Game *game) {
 	const int center_x = g_app->game_width  / 2;
 	const int center_y = g_app->game_height / 2;
 	
-	Player *player = &game->player;
+	Player *player = &game->session.player;
 	if (player->health == 0) {
 		const char *death = "YOU ARE DEAD.";
 		int width = MeasureText(death, font_size * 2);
@@ -152,46 +152,47 @@ static void draw_ui(Game *game) {
 }
 
 static void draw_game_environment(Game *game) {
+	GameSession *session = &game->session;
+
 	ClearBackground(BLACK);
 
 	// Drawing actual world space stuff.
-	BeginMode2D(game->camera);
-	draw_world(&game->world);
-	draw_player(&game->player);
+	BeginMode2D(session->camera.raylib_cam);
+	draw_world(&session->world);
+	draw_player(&session->player);
+	
 	EndMode2D();
 
 	// Drawing UI things using screen space.
 	draw_ui(game);
 }
 
+void init_game_session(GameSession *session) {
+	arena_init(&session->world_arena, megabytes(128));
+
+	bool loaded = load_world(&session->world, &session->world_arena);
+	if (!loaded) {
+		fprintf(stderr, "[INIT_GAME] No world data loaded. Starting placeholder world instead.\n");
+		load_placeholder_world(&session->world, &session->world_arena);
+	}
+
+	init_player(&session->player, &session->world);
+	init_camera(&session->camera, &session->world);
+
+	session->editor.mode = EDITOR_VIEW;
+}
 
 void init_game(Game *game) {
-	init_camera(&game->camera);
-
-	const u32 screen_count = 10;
-	const u32 tiles_wide = g_app->game_width  / 32;
-	const u32 tiles_tall = g_app->game_height / 32;
-
-	// The world_arena is sized for tile data + future entity metadata overhead.
-	arena_init(&game->world_arena, megabytes(64));
 	arena_init(&game->temp_arena, megabytes(16));
 
-#if 0
-	init_world(&game->world, &game->world_arena, screen_count, tiles_wide, tiles_tall);
-#else
-	bool loaded = load_world(&game->world, &game->world_arena);
-	if (!loaded) {
-		init_world(&game->world, &game->world_arena, screen_count, tiles_wide, tiles_tall);
-		save_world(&game->world);
-		fprintf(stderr, "[INIT_GAME] No world data loaded. Starting blank world instead.\n");
-	}
-#endif
-
-	init_player(&game->player);
 	init_console(&game->console);
+	init_game_session(&game->session);
 }
 
 void update_game(Game *game, Input *input, float dt) {
+	GameSession *session = &game->session;
+	const Vector2 player_center = {session->player.sprite.x + session->player.sprite.width * 0.5f,session->player.sprite.y + session->player.sprite.height * 0.5f};
+
 	switch (game->state) {
 	case GAME_OPENING_MENU: {
 		update_menu(&game->menu, game);
@@ -203,23 +204,18 @@ void update_game(Game *game, Input *input, float dt) {
 	}
 	case GAME_WORLD: {
 		if (input->reset_game) push_command_simple(game, CMD_RESET_GAME);
-
 		if (input->pause_game) {
 			game->menu.current_main_item = MAIN_START;
 			push_command_change_state(game, GAME_MENU);
 		}
 		
-		update_world(&game->world, &game->player, &game->camera, dt);
-		update_camera(&game->camera, input);
-		update_player(&game->player, &game->world, input, dt);
+		update_world(&session->world, player_center);
+		update_camera(&session->camera, &session->world, player_center, input);
+		update_player(&session->player, &session->world, input, dt);
 		break;
 	}
 	case GAME_EDITOR: {
-		// @TODO: Should we still be updating stuff while in editor mode? update_world() has it's
-		// own camera system, and we want to be able to use our WASD keys to navigate the world.
-		// update_world(&game->world, &game->player, &game->camera, dt);
-		// update_player(&game->player, &game->world, input, dt);
-		update_camera(&game->camera, input);
+		update_camera(&session->camera, &session->world, player_center, input);
 		break;
 	}
 	default: {
@@ -260,7 +256,7 @@ void draw_game(Game *game) {
 }
 
 void cleanup_game(Game *game) {
-	arena_free(&game->world_arena);
+	arena_free(&game->session.world_arena);
 	arena_free(&game->temp_arena);
 	
 	cleanup_console(&game->console);
@@ -294,6 +290,8 @@ void push_command_change_state(Game *game, GameState target_state) {
 }
 
 void process_command_list(Game *game) {
+	GameSession *session = &game->session;
+
 	for (int i = 0; i < game->command_count; ++i) {
 		auto &cmd = game->pending_commands[i];
 		switch (cmd.type) {
@@ -346,7 +344,7 @@ void process_command_list(Game *game) {
 			} else if (game->state == GAME_EDITOR){
 				printf("Reverting to previous game state.\n");
 				game->state = prev;
-				reset_camera(&game->camera);
+				reset_camera(&session->camera, &session->world);
 				HideCursor();
 			}
 			break;
@@ -357,28 +355,7 @@ void process_command_list(Game *game) {
 	game->command_count = 0;
 }
 
-
-// @Dev
 void reset_game_state(Game *game) {
-#if 1
-	init_player(&game->player);
-	reset_camera(&game->camera);
-#else
-	auto player = &game->player;
-	player->pos.x = 0;
-	player->pos.y = 0;
-	
-	player->vel.x = 0.0f;
-	player->vel.y = 0.0f;
-	
-	player->sprite.x = player->pos.x;
-	player->sprite.y = player->pos.y;
-	player->sprite.width  = 20;
-	player->sprite.height = 20;
-
-	player->state	    = PLAYER_IDLE;
-	player->prev_state  = player->state;
-	player->is_grounded = false;
-	player->health = 3;
-#endif
+	init_player(&game->session.player, &game->session.world);
+	reset_camera(&game->session.camera, &game->session.world);
 }

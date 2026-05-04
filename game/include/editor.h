@@ -4,6 +4,7 @@
 #include "raylib.h"
 
 struct Game;
+struct GameSession;
 
 enum EditorMode {
 	EDITOR_VIEW = 0,
@@ -19,5 +20,8 @@ struct Editor {
 
 void draw_editor_view(Game *game);
 void cycle_editor_mode(Editor *editor, bool do_increment);
+void handle_tile_editor_input(Game *game);
+
+Vector2 get_snapped_mouse_pos_in_world(const GameSession* session);
 
 #endif

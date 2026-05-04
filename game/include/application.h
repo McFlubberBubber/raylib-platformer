@@ -44,8 +44,8 @@ struct Application {
 
 	RenderTexture2D game_render_target;
 	Rectangle       game_viewport;
-	int game_width  = 1920;
-	int game_height = 1080;
+	s32 game_width  = 1920;
+	s32 game_height = 1080;
 
 	int target_fps = DESIRED_FPS;
 	bool should_close;

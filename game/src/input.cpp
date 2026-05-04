@@ -97,6 +97,8 @@ static void poll_menu_inputs(Game *game) {
 }
 
 static void poll_editor_inputs(Application *app) {
+	Editor *editor = &app->game.session.editor;
+
 	Input *input = &app->input;
 	input->camera_movement = { 0.0f, 0.0f };
 	input->camera_zoom     = GetMouseWheelMove();
@@ -111,15 +113,19 @@ static void poll_editor_inputs(Application *app) {
 	if (IsKeyDown(KEY_W)) {
 		input->camera_movement.y = -1.0f;
 	}
-	if (IsKeyDown(KEY_S)) {
+	if (IsKeyDown(KEY_S) && !IsKeyDown(KEY_LEFT_CONTROL)) { // This is because ctrl+s is save_world().
 		input->camera_movement.y =  1.0f;
 	}
 
 	if (IsKeyPressed(KEY_LEFT)) {
-		cycle_editor_mode(&app->game.session.editor, false);
+		cycle_editor_mode(editor, false);
 	}
 	if (IsKeyPressed(KEY_RIGHT)) {
-		cycle_editor_mode(&app->game.session.editor, true);
+		cycle_editor_mode(editor, true);
+	}
+
+	if (editor->mode == EDITOR_TILES) {
+		handle_tile_editor_input(&app->game);
 	}
 }
 

@@ -158,7 +158,7 @@ static void draw_game_environment(Game *game) {
 
 	// Drawing actual world space stuff.
 	BeginMode2D(session->camera.raylib_cam);
-	draw_world(&session->world);
+	draw_world(&session->world, false); // Don't draw all screens.
 	draw_player(&session->player);
 	
 	EndMode2D();

@@ -46,7 +46,6 @@ bool load_world(World *world, Arena *arena) {
 	const char *app_dir    = GetApplicationDirectory();
 	const char *world_path = "data/world/level_01.wld";
 	
-	printf("app_dir: %s\n", app_dir);
 	snprintf(full_path, sizeof(full_path), "%s%s", app_dir, world_path); 
 
 	FILE *file = fopen(full_path, "rb");
@@ -94,14 +93,21 @@ bool load_world(World *world, Arena *arena) {
 void load_placeholder_world(World *world, Arena *arena) {
 	const u32 grid_width = 5;
 	const u32 grid_height = 1;
-	const u32 width_in_tiles  = (u32)(g_app->game_width / world->tile_size);
-	const u32 height_in_tiles = (u32)(g_app->game_height / world->tile_size); 
+	const u32 width_in_tiles  = (u32)(g_app->game_width  / world->tile_size);
+	const u32 height_in_tiles = (u32)(g_app->game_height / world->tile_size);
 	init_world(world, arena, grid_width, grid_height, width_in_tiles, height_in_tiles);
 	
 	for (u32 gy = 0; gy < world->grid_height; ++gy) {
 		for (u32 gx = 0; gx < world->grid_width; ++gx) {
 			Screen *screen = world_get_screen(world, (s32)gx, (s32)gy);
 			if (!screen) continue;
+
+			u32 row_above_bottom_row = screen->tile_offset + (world->screen_height_in_tiles - 2) * world->screen_width_in_tiles;
+			for (u32 x = 0; x < world->screen_width_in_tiles; ++x) {
+				if (x % 5 == 0) {
+					world->tiles.data[row_above_bottom_row + x].type = TILE_SOLID;
+				}
+			}
 
 			u32 bottom_row = screen->tile_offset + (world->screen_height_in_tiles - 1) * world->screen_width_in_tiles;
 			for (u32 x = 0; x < world->screen_width_in_tiles; ++x) {
@@ -171,31 +177,41 @@ void update_world(World *world, Vector2 player_center) {
 	world->current_screen_y = new_screen_y;
 }
 
-void draw_world(const World *world) {
+void draw_world(const World *world, bool draw_all_screens) {
     const float line_thickness = 2.0f;
+    u32 screen_start = 0;
+    u32 screen_end   = 1;
 
-    s32 screen_index = world->current_screen_y * world->grid_width + world->current_screen_x;
-    Screen *screen   = &world->screens.data[screen_index];
+    if (draw_all_screens) {
+        screen_start = 0;
+        screen_end   = world->grid_width * world->grid_height;
+    } else {
+        screen_start = world->current_screen_y * world->grid_width + world->current_screen_x;
+        screen_end   = screen_start + 1;
+    }
 
-    assert(screen->is_valid);
+    for (u32 si = screen_start; si < screen_end; ++si) {
+        Screen *screen = &world->screens.data[si];
+        if (!screen->is_valid) continue;
 
-    u32 base  = screen->tile_offset;
-    u32 count = world->tiles_per_screen;
+        u32 base  = screen->tile_offset;
+        u32 count = world->tiles_per_screen;
 
-    for (u32 i = 0; i < count; ++i) {
-        Tile *tile = &world->tiles.data[base + i];
-        if (tile->type == TILE_EMPTY) continue;
+        for (u32 i = 0; i < count; ++i) {
+            Tile *tile = &world->tiles.data[base + i];
+            if (tile->type == TILE_EMPTY) continue;
 
-        Vector2 pos  = tile_index_to_world(world, screen_index, i);
-        Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
-        Color color  = BLUE;
+            Vector2   pos  = tile_index_to_world(world, si, i);
+            Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
+            Color     color = BLUE;
 
-        switch (tile->type) {
-        case TILE_SOLID: { color = DARKGRAY; break; }
-        case TILE_SPIKE: { color = PURPLE;   break; }
+            switch (tile->type) {
+            case TILE_SOLID: { color = DARKGRAY; break; }
+            case TILE_SPIKE: { color = PURPLE;   break; }
+            }
+
+            DrawRectangleLinesEx(rect, line_thickness, color);
         }
-
-        DrawRectangleLinesEx(rect, line_thickness, color);
     }
 }
 
@@ -221,9 +237,23 @@ Vector2 tile_index_to_world(const World *world, u32 screen_index, u32 tile_index
 	return result;
 }
 
-// @TODO.
 void world_pos_to_tile(const World *world, Vector2 world_pos, u32 *out_screen, u32 *out_x, u32 *out_y) {
+	float screen_pixel_width  = world_screen_pixel_width(world);
+	float screen_pixel_height = world_screen_pixel_height(world);
 
+	// First, find which screen the grid belongs to.
+	s32 grid_x = (s32)floorf(world_pos.x / screen_pixel_width);
+	s32 grid_y = (s32)floorf(world_pos.y / screen_pixel_height);
+	grid_x = (s32)Clamp((float)grid_x, 0.0f, (float)world->grid_width  - 1);	
+	grid_y = (s32)Clamp((float)grid_y, 0.0f, (float)world->grid_height - 1);
+	*out_screen = (u32)(grid_y * world->grid_width + grid_x);
+
+	float local_x = world_pos.x - (grid_x * screen_pixel_width);
+	float local_y = world_pos.y - (grid_y * screen_pixel_height);
+	*out_x = (u32)floorf(local_x / world->tile_size);
+	*out_y = (u32)floorf(local_y / world->tile_size);
+	*out_x = (u32)Clamp((float)*out_x, 0.0f, (float)(world->screen_width_in_tiles  - 1));
+	*out_y = (u32)Clamp((float)*out_y, 0.0f, (float)(world->screen_height_in_tiles  - 1));
 }
 
 bool is_solid(const World *world, float world_x, float world_y) {

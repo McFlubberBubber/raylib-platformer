@@ -13,7 +13,9 @@ void init_camera(Camera_2D *camera, const World *world) {
 	camera->raylib_cam.target.y = screen_pixel_height * 0.5f;
 	camera->raylib_cam.offset   = {g_app->game_width * 0.5f, g_app->game_height * 0.5f};
 	camera->raylib_cam.rotation = 0;
-	camera->raylib_cam.zoom     = 1.0f;
+
+	camera->raylib_cam.zoom = 1.0f;
+//	camera->raylib_cam.zoom = 1.5f;
 
 	camera->is_transitioning = false;
 	camera->target_world_pos = camera->raylib_cam.target;

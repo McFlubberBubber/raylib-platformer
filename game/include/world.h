@@ -73,7 +73,7 @@ void cleanup_world(World *world);
 
 void update_world(World *world, Vector2 player_center);
 
-void draw_world(const World *world);
+void draw_world(const World *world, bool draw_all_screens);
 
 // Coordinate utils.
 inline u32 get_tile_index(const World *world, u32 screen_index, u32 x, u32 y) {

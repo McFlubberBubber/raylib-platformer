@@ -2,13 +2,17 @@
 #define CONSOLE_H
 
 #include "raylib.h"
+#include "commands.h"
 #include "general.h"
 
-const int CONSOLE_INPUT_SIZE  = 512;
-const int CONSOLE_MAX_LOGS    = 256;
-const int CONSOLE_MAX_HISTORY = 64;
+const s32 CONSOLE_INPUT_SIZE  = 512;
+const s32 CONSOLE_MAX_LOGS    = 256;
+const s32 CONSOLE_MAX_HISTORY = 64;
 
-const int CONSOLE_ARENA_SIZE = kilobytes(128);
+const s32 CONSOLE_ARENA_SIZE = kilobytes(128);
+
+// Forward declarations.
+struct Console;
 
 enum ConsoleLogType {
 	CONSOLE_LOG_COMMAND = 0,
@@ -34,11 +38,6 @@ struct ConsoleLogBuffer {
 	int log_count;
 };
 
-struct ConsoleHistory {
-	char *entries[CONSOLE_MAX_HISTORY];
-	int   count;
-};
-
 struct ConsoleInput {
 	char data[CONSOLE_INPUT_SIZE] = { 0 };
 	int length;
@@ -60,13 +59,18 @@ struct Console {
 	
 	ConsoleInput input;
 	ConsoleLogBuffer log_buffer;
-	ConsoleHistory history;
 
-	int history_index;
+	Array<String> history;
+	s32 history_index; // We use -1 as "not browsing history" mode.
 
-	// @TODO: We need to put our actual commands that the console can look up in this struct aswell.
+	// Command commands[CMD_COUNT] = { 0 };
 
 	bool is_initialized;
+};
+
+struct ParseResult {
+	String *tokens;
+	s32     count;
 };
 
 void init_console(Console *console);

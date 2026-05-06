@@ -161,6 +161,87 @@ const char *string_to_cstr(String str) {
 	return (const char *)str.data;
 }
 
+bool string_is_empty(String str) {
+	return str.data == nullptr || str.length == 0;
+}
+
+bool string_starts_with(String str, String prefix) {
+	if (prefix.length > str.length) return false;
+	return memcmp(str.data, prefix.data, prefix.length) == 0;
+}
+
+bool string_ends_with(String str, String suffix) {
+	if (suffix.length > str.length) return false;
+	s32 length_difference = str.length - suffix.length;
+	return memcmp(str.data + length_difference, suffix.data, suffix.length) == 0;
+}
+
+s64 string_find_char(String str, char c) {
+	for (u64 i = 0; i < str.length; ++i) {
+		if (str.data[i] == c) return (s64)i;
+	}
+	return -1;
+}
+
+s64 string_find_char_reverse(String str, char c) {
+	for (u64 i = str.length; i > 0; --i) {
+		if (str.data[i - 1] == c) return (s64)i;
+	}
+	return -1;
+}
+
+// Arena-allocating string manipulation.
+String string_copy(Arena *arena, String str) {
+	assert(arena);
+	if (string_is_empty(str)) return {};
+
+	char *data = (char *)arena_allocate(arena, (str.length + 1), alignof(char)); // +1 for null-term.
+	assert(data);
+	memcpy(data, str.data, str.length);
+	data[str.length] = '\0';
+
+	return {data, str.length};
+}
+
+String string_trim_left(String s) {
+    while (s.length > 0 && (s.data[0] == ' ' || s.data[0] == '\t')) {
+        s.data++;
+        s.length--;
+    }
+    return s;
+}
+
+String string_trim_right(String s) {
+    while (s.length > 0 && (s.data[s.length - 1] == ' ' || s.data[s.length - 1] == '\t')) {
+        s.length--;
+    }
+    return s;
+}
+
+String string_trim(String s) {
+    return string_trim_right(string_trim_left(s));
+}
+
+s32 string_split_whitespace(String str, String *out, s32 max_tokens) {
+	assert(out);
+	s32 count = 0;
+	u64 i = 0;
+
+	while (i < str.length && count < max_tokens) {
+		while (i < str.length && str.data[i] == ' ') ++i;
+		if (i >= str.length) break;
+
+		// Finding the end of the token.
+		u64 start = i;
+		while (i < str.length && str.data[i] != ' ' ) ++i;
+		out[count++] = string_view(str.data + start, i - start);
+	}
+
+	return count;
+}
+
+
+// ===== String Builder stuff... =====
 static void strbuild_append(Arena *arena, StringBuilder *sb, const char *data, u64 length) {
 	assert(arena && sb && data);
 	char *dest = (char *)arena_allocate(arena, length, alignof(char));
@@ -228,5 +309,14 @@ void draw_text_ex_with_string(const Font *font, String str, Vector2 pos, s32 fon
 	} else {
 		DrawTextEx(*font, "ERROR!", pos, font_size, spacing, RED);
 		fprintf(stderr, "[DRAW_TEXT_WITH_STRING] Received null String at pos (%.1f, %.1f)\n", pos.x, pos.y);
+	}
+}
+
+Vector2 measure_text_ex_with_string(const Font *font, String str, float font_size, float font_spacing) {
+	if (str.data) {
+		return MeasureTextEx(*font, string_to_cstr(str), font_size, font_spacing);
+	} else {
+		fprintf(stderr, "[MEASURE_TEXT_WITH_STRING] Received a String with NULL data.\n");
+		return { 0, 0 };
 	}
 }

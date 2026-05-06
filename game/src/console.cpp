@@ -1,6 +1,7 @@
 #include "console.h"
 
 #include "application.h"
+#include "commands.h"
 
 inline static bool is_space(char c) {
 	return c == ' ' || c == '\t';
@@ -12,6 +13,8 @@ inline static void clear_input_area(Console *console) {
 	console->input.length            = 0;
 	console->input.cursor_pos 		 = 0;
 	console->input.cursor_blink_time = 0.0f;
+
+	// console->history_index = -1; 
 }
 
 static void update_openness(Console *console, float dt) {
@@ -146,6 +149,10 @@ static void draw_input_area(Console *console) {
 	}
 }
 
+static void execute_command(Console *console, ParseResult *result) {
+	
+}
+
 void init_console(Console *console) {
 	// Member initialization.
 	console->is_initialized = true;
@@ -171,7 +178,8 @@ void init_console(Console *console) {
 	console->history.count = 0;
 
 	// @TODO: Load up console arguments here.
-
+	array_init(&console->history, &console->arena, CONSOLE_MAX_HISTORY);
+	
 	push_log(console, "This is the console. Type 'help' for more commands.", CONSOLE_LOG_INFO);
 }
 
@@ -185,6 +193,7 @@ void draw_console(Console *console) {
 
 void cleanup_console(Console *console) {
 	arena_free(&console->arena);
+	// dynamic_array_free(&console->history);
 }
 
 void insert_character(Console *console, int character) {
@@ -247,14 +256,25 @@ void delete_word(Console* console) {
 }
 
 void submit_command(Console *console) {
+	const u32 MAX_TOKEN_COUNT = 16;
 	if (console->input.length == 0) return; 
 	char *command = console->input.data;
 	ConsoleLogType type = CONSOLE_LOG_COMMAND;
 
 	push_log(console, command, type);
-	// add_command_to_history(console, command);
-	// parse_and_tokenize(console, command);
+	array_add(&console->history, string_create(&console->arena, command));
+
+	String *output = push_array_to_arena(&g_app->game.temp_arena, String, MAX_TOKEN_COUNT);
+	String cmd = string_create(&g_app->game.temp_arena, command);
+	s32 token_count = string_split_whitespace(cmd, output, MAX_TOKEN_COUNT);
+	for (s32 i = 0; i < token_count; ++i) {
+		printf("Token %d: %.*s\n", i, (s32)output[i].length, output[i].data);
+	}
+
+	ParseResult result = { output, token_count };
+	execute_command(console, &result);
 	clear_input_area(console);
+	console->history_index = -1;
 }
 
 void move_cursor_by_char(Console* console, bool is_forward) {
@@ -335,4 +355,34 @@ void push_log(Console *console, const char *message, ConsoleLogType type) {
 #endif
 
 	return;
+}
+
+void navigate_command_history(Console *console, bool move_forward) {
+	s32 history_count = (s32)console->history.count;
+	if (history_count < 1) return;
+	
+	clear_input_area(console);
+	if (console->history_index == -1) {
+		console->history_index = history_count; // Start with the most recent history item.
+	}
+	history_count -= 1; // For zero-indexxing.
+
+	if (!move_forward) {
+		console->history_index--;
+		if (console->history_index <= 0) {
+			console->history_index = 0; // Clamp value.
+		}
+	} else {
+		console->history_index++;
+		if (console->history_index >= history_count) {
+			console->history_index = history_count; // Clamp value.
+		}
+	}
+	
+	printf("history_index: %d\n", console->history_index);
+	
+	String *command = array_get_at_index(&console->history, console->history_index);
+	for (u32 i = 0; i < command->length; ++i) {
+		insert_character(console, command->data[i]);
+	}
 }

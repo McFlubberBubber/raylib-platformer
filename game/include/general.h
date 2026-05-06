@@ -76,7 +76,7 @@ void array_init(Array<T> *array, Arena *arena, size_t capacity) {
 }
 
 template <typename T>
-void array_push(Array<T> *array, T value) {
+void array_add(Array<T> *array, T value) {
 	assert(array->count < array->capacity);
 	array->data[array->count++] = value;
 }
@@ -141,18 +141,30 @@ bool   string_comp(String a, String b); // Should this return an integer instead
 
 const char *string_to_cstr(String str);
 
+bool string_is_empty(String str);
+bool string_starts_with(String str, String prefix);
+bool string_ends_with(String str, String suffix);
+s64  string_find_char(String str, char c);		   // Returns -1 if not found.
+s64  string_find_char_reverse(String str, char c); // Returns -1 if not found.
+
+String string_copy(Arena *arena, String str);
+String string_trim(String str);
+String string_trim_left(String str);
+String string_trim_right(String str);
+s32	   string_split_whitespace(String str, String *out, s32 max_tokens); // Returns array of strings
+
 // The resulting string point to read-only memory, so don't write to it!
 #define string_literal_create(s) String{(char *)(s), sizeof(s) - 1}
 
 // This StringBuilder would break if we called arena_allocate() in between each append.
-// Therefore, we must finish all appends with the StringBuider before doing any more arena
+// Therefore, we must finish all appends with the StringBuilder before doing any more arena
 // allocations, or else the memory will not be contigious!
 struct StringBuilder {
 	String buffer;
 };
 
 void   strbuild_append_string(Arena *arena, StringBuilder *sb, String s);
-void   strbuild_append_cstring(Arena *areana, StringBuilder *sb, const char *cstr);
+void   strbuild_append_cstring(Arena *arena, StringBuilder *sb, const char *cstr);
 void   strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...);
 String strbuild_terminate(Arena *arena, StringBuilder *sb);
 void   strbuild_reset(StringBuilder *sb);
@@ -160,5 +172,50 @@ void   strbuild_reset(StringBuilder *sb);
 // Raylib expects a null-terminated string here, so we can't pass a view into a string unless we
 // manually put the null-terminator.
 void draw_text_ex_with_string(const Font *font, String str, Vector2 pos, s32 font_size, s32 spacing, Color color);
+Vector2 measure_text_ex_with_string(const Font *font, String str, float font_size, float font_spacing);
+
+
+// So this OTHER Array type you see here is NOT arena-backed like most other things in this
+// file, therefore we should only be using this if we truly want dynamic array stuff since we
+// reallocate by 2.0x the capacity everytime we hit the threshold. As a result, only use this
+// structure if we know it's something we don't do often. 
+
+template <typename T>
+struct DynamicArray {
+	T *data;
+	size_t count;
+	size_t capacity;
+};
+
+template <typename T>
+void dynamic_array_init(DynamicArray<T> *arr, size_t initial_capacity = 8) {
+	assert(arr);
+	arr->data  	   = (T *)MemAlloc(sizeof(T) * initial_capacity);
+	arr->count	   = 0;
+	arr->capacity = initial_capacity;
+	assert(arr->data);
+}
+
+template <typename T>
+void dynamic_array_add(DynamicArray<T> *arr, T value) {
+	assert(arr);
+	if (arr->count >= arr->capacity) {
+		size_t new_capacity = arr->capacity * 2;
+		arr->data = (T *)MemRealloc(arr->data, sizeof(T) * new_capacity);
+		assert(arr->data);
+		arr->capacity = new_capacity;
+	}
+
+	arr->data[arr->count++] = value;
+}
+
+template <typename T>
+void dynamic_array_free(DynamicArray<T> *arr) {
+	assert(arr);
+	MemFree(arr->data);
+	arr->data     = nullptr;
+	arr->count    = 0;
+	arr->capacity = 0;
+}
 
 #endif

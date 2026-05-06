@@ -43,11 +43,19 @@ static void poll_console_inputs(Game *game) {
         ctrl_held ? move_cursor_by_word(console, false) : move_cursor_by_char(console, false);
         console->input.cursor_blink_time = 0.0f; // @TODO: Reset cursor blink time automatically.
     }
-
     if (IsKeyPressed(KEY_RIGHT) || IsKeyPressedRepeat(KEY_RIGHT)) {
         ctrl_held ? move_cursor_by_word(console, true) : move_cursor_by_char(console, true);
         console->input.cursor_blink_time = 0.0f; // @TODO: Same here.
     }
+
+	if (IsKeyPressed(KEY_UP) || IsKeyPressedRepeat(KEY_UP)) {
+		navigate_command_history(console, false);
+		console->input.cursor_blink_time = 0.0f;
+	}
+	if (IsKeyPressed(KEY_DOWN) || IsKeyPressedRepeat(KEY_DOWN)) {
+		navigate_command_history(console, true);
+		console->input.cursor_blink_time = 0.0f;
+	}
 
     if (IsKeyPressed(KEY_ENTER)) {
         submit_command(console);

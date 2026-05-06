@@ -148,7 +148,7 @@ void init_world(World *world, Arena *arena, u32 grid_width, u32 grid_height, u32
 			screen.grid_y = (s32)y;
 			screen.tile_offset = (y * grid_width + x) * world->tiles_per_screen;
 			screen.is_valid = true;
-			array_push(&world->screens, screen);
+			array_add(&world->screens, screen);
 		}
 	}
 

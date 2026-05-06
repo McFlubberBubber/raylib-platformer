@@ -43,10 +43,24 @@ static void draw_tile_editor_view(Game *game) {
 	const float tile_size = session->world.tile_size;
 	const Vector2 snapped_pos = get_snapped_mouse_pos_in_world(session);
 
+	// Draw a preview of the tile the user is going to place / erase.
 	Rectangle tile_preview_rect = {snapped_pos.x, snapped_pos.y, (float)tile_size, (float)tile_size};
 	Color tile_preview_color = { 255, 255, 255, 100 };
 	DrawRectangleRec(tile_preview_rect, tile_preview_color);
 	DrawRectangleLinesEx(tile_preview_rect, 1.0f, WHITE);
+
+	// Draw the borders to each screen for clarity.
+	float screen_pixel_width  = world_screen_pixel_width(&session->world);
+	float screen_pixel_height = world_screen_pixel_height(&session->world);
+	for (u32 gy = 0; gy < session->world.grid_height; ++gy) {
+		for (u32 gx = 0; gx < session->world.grid_width; ++gx) {
+			Screen *screen = world_get_screen(&session->world, (s32)gx, (s32)gy);
+			if (!screen) continue;
+
+			Rectangle screen_border_rect = {(gx * screen_pixel_width) , (gy * screen_pixel_height), screen_pixel_width, screen_pixel_height};
+			DrawRectangleLinesEx(screen_border_rect, 1.0f, GREEN);
+		}
+	}
 }
 
 void draw_editor_view(Game *game) {
@@ -132,12 +146,18 @@ Vector2 get_snapped_mouse_pos_in_world(const GameSession* session) {
 	const World *world = &session->world;
 	const float tile_size = world->tile_size;
 
+	// First, start with mouse position in window-space.
 	const Vector2 mouse_pos = GetMousePosition();
+
+	// Scale the mouse position based on the render target.
 	const float scaled_x = (float)g_app->game_width  / (float)g_app->width;
 	const float scaled_y = (float)g_app->game_height / (float)g_app->height;
-	const Vector2 scaled_mouse_pos = { mouse_pos.x * scaled_x, mouse_pos.y * scaled_y }; 
+	const Vector2 scaled_mouse_pos = { mouse_pos.x * scaled_x, mouse_pos.y * scaled_y };
+
+	// Use raylib's screen-to-world-space procedure with the scaled mouse position.
 	const Vector2 mouse_pos_in_world = GetScreenToWorld2D(scaled_mouse_pos, session->camera.raylib_cam);
 	
+	// Snap the mouse_pos_in_world according to grid.
 	Vector2 result;
 	result.x = floorf(mouse_pos_in_world.x / tile_size) * tile_size;
 	result.y = floorf(mouse_pos_in_world.y / tile_size) * tile_size;

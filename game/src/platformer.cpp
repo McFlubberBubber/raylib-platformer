@@ -14,12 +14,12 @@ static void draw_debug_overlay(Game *game) {
 	Player *player = &game->session.player;
 	const Font *font = get_font(FONT_CONSOLE);
 
-	const int font_size = 30;
-	const int spacing   = 0;
-	const int text_x    = 0;
-	const int text_y    = 20;
-	const int center_x  = (int)g_app->game_width  * 0.5f;
-	const int center_y  = (int)g_app->game_height * 0.5f;
+	const s32 font_size = 24;
+	const s32 spacing   = 0;
+	const s32 text_x    = 0;
+	const s32 text_y    = 20;
+	const s32 center_x  = (s32)g_app->game_width  * 0.5f;
+	const s32 center_y  = (s32)g_app->game_height * 0.5f;
 
 	StringBuilder builder = {0};
 	String final_str;
@@ -131,16 +131,16 @@ static void draw_debug_overlay(Game *game) {
 }
 
 static void draw_ui(Game *game) {
-	const int font_size = 18;
-	const int center_x = g_app->game_width  / 2;
-	const int center_y = g_app->game_height / 2;
+	const s32 font_size = 18;
+	const s32 center_x = g_app->game_width  / 2;
+	const s32 center_y = g_app->game_height / 2;
 	
 	Player *player = &game->session.player;
-	if (player->health == 0) {
+	if (player->state == PLAYER_DEAD) {
 		const char *death = "YOU ARE DEAD.";
-		int width = MeasureText(death, font_size * 2);
-		int x = center_x - (width / 2);
-		int y = center_y * 0.4f;
+		s32 width = MeasureText(death, font_size * 2);
+		s32 x = center_x - (width / 2);
+		s32 y = center_y * 0.4f;
 		DrawText(death, x, y, (font_size * 2), RED);
 		
 		const char *reset = "Press R to respawn.";
@@ -262,98 +262,6 @@ void cleanup_game(Game *game) {
 	cleanup_console(&game->console);
 }
 
-void push_command_simple(Game *game, CommandType type) {
-	if (game->command_count >= MAX_COMMAND_COUNT) {
-#ifdef DEBUG
-		fprintf(stderr, "CMD_ERROR: Command queue is full.\n");
-		assert(false);
-#endif
-		return;
-	}
-
-	game->pending_commands[game->command_count].type = type;
-	game->command_count++;
-}
-
-void push_command_change_state(Game *game, GameState target_state) {
-	if (game->command_count >= MAX_COMMAND_COUNT) {
-#ifdef DEBUG
-		fprintf(stderr, "CMD_ERROR: Command queue is full.\n");
-		assert(false);
-#endif
-		return;
-	}
-
-	game->pending_commands[game->command_count].type = CMD_CHANGE_STATE;
-	game->pending_commands[game->command_count].data.target_state = target_state;
-	game->command_count++;
-}
-
-void process_command_list(Game *game) {
-	GameSession *session = &game->session;
-
-	for (int i = 0; i < game->command_count; ++i) {
-		auto &cmd = game->pending_commands[i];
-		switch (cmd.type) {
-		case CMD_NONE: {
-			break;
-		}
-		case CMD_CHANGE_STATE: {
-			game->state = cmd.data.target_state;
-			break;
-		}
-		case CMD_RESET_GAME: {
-			reset_game_state(game);
-			break;
-		}
-		case CMD_QUIT_GAME: {
-			g_app->should_close = true;
-			break;
-		}
-		case CMD_TOGGLE_DEBUG_MODE: {
-			game->debug_mode = !game->debug_mode;
-			printf("Toggling DEBUG_MODE. \n");
-			break;
-		}
-		case CMD_TOGGLE_BIG_CONSOLE: {
-			if (game->console.state != CONSOLE_OPEN_BIG) {
-				game->console.state = CONSOLE_OPEN_BIG;
-				printf("Toggling console state: CONSOLE_OPEN_BIG\n");
-			} else {
-				game->console.state = CONSOLE_CLOSED;
-				printf("Toggling console state: CONSOLE_CLOSED\n");
-			}
-			break;
-		}
-		case CMD_TOGGLE_SMALL_CONSOLE: {
-			if (game->console.state != CONSOLE_OPEN_SMALL) {
-				game->console.state = CONSOLE_OPEN_SMALL;
-				printf("Toggling console state: CONSOLE_OPEN_SMALL\n");
-			} else {
-				game->console.state = CONSOLE_CLOSED;
-				printf("Toggling console state: CONSOLE_CLOSED\n");
-			}
-			break;
-		}
-		case CMD_TOGGLE_EDITOR_MODE: {
-			static GameState prev = game->state;
-			if (game->state != GAME_EDITOR) {
-				printf("Toggling game state: GAME_EDITOR\n");
-				game->state = GAME_EDITOR;
-				ShowCursor();
-			} else if (game->state == GAME_EDITOR){
-				printf("Reverting to previous game state.\n");
-				game->state = prev;
-				reset_camera(&session->camera, &session->world);
-				HideCursor();
-			}
-			break;
-		}
-
-		}
-	}
-	game->command_count = 0;
-}
 
 void reset_game_state(Game *game) {
 	init_player(&game->session.player, &game->session.world);

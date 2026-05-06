@@ -264,8 +264,12 @@ void submit_command(Console *console) {
 	push_log(console, command, type);
 	array_add(&console->history, string_create(&console->arena, command));
 
-	String *output = push_array_to_arena(&g_app->game.temp_arena, String, MAX_TOKEN_COUNT);
-	String cmd = string_create(&g_app->game.temp_arena, command);
+//	String *output = push_array_to_arena(&g_app->game.temp_arena, String, MAX_TOKEN_COUNT);
+//	String cmd = string_create(&g_app->game.temp_arena, command);
+
+	Arena *arena = get_current_arena_frame();
+	String *output = push_array_to_arena(arena, String, MAX_TOKEN_COUNT);
+	String cmd = string_create(arena, command);
 	s32 token_count = string_split_whitespace(cmd, output, MAX_TOKEN_COUNT);
 	for (s32 i = 0; i < token_count; ++i) {
 		printf("Token %d: %.*s\n", i, (s32)output[i].length, output[i].data);

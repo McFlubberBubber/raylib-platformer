@@ -28,6 +28,10 @@ static void calculate_game_viewport(Application *app) {
 
 void init_app(Application *app) {
 	g_app = app;
+
+	arena_init(&app->scratch.arenas[0], megabytes(16));
+	arena_init(&app->scratch.arenas[1], megabytes(16));
+
 	// Setting window size based on user preference (should be loaded from a config eventually).
 	switch (app->res) {
 	case _1280x720_: {
@@ -140,9 +144,18 @@ void draw_app(Application *app) {
 
 void shutdown_app(Application *app) {
 	cleanup_game(&app->game);
+	unload_all_assets(&app->asset_manager); // This also closes the raylib audio device.
+	
+	arena_free(&app->scratch.arenas[0]);
+	arena_free(&app->scratch.arenas[1]);
+	
 	g_app = nullptr;
 	g_asset_manager = nullptr;
 	
-	unload_all_assets(&app->asset_manager); // This also closes the raylib audio device.
 	CloseWindow();
+}
+
+void flip_scratch_arenas(Application *app) {
+	app->scratch.current = 1 - app->scratch.current;
+	arena_reset(&app->scratch.arenas[app->scratch.current]);
 }

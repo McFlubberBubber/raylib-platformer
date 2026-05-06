@@ -23,7 +23,7 @@ struct GameSession {
 };
 
 struct Game {
-	Arena temp_arena;
+	// Arena temp_arena;
 
 	GameState state = GAME_OPENING_MENU;
 	GameCommand pending_commands[MAX_COMMAND_COUNT] = {};

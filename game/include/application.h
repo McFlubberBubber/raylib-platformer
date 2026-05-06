@@ -28,15 +28,17 @@ enum ResolutionType {
 
 	RESOLUTION_COUNT
 };
-	
+
+struct ScratchArenas {
+	Arena arenas[2];
+	int   current = 0;
+};
+
 struct Application {
 	const char *title = "Platformer";
 	ResolutionType res = _1280x720_;
-#if 1
+
 	DisplayMode display_mode = WINDOWED_MODE;
-#else
-	DisplayMode display_mode = FULLSCREEN_MODE;
-#endif
 
 	// Related to the actual window and monitor specs.
 	int monitor, monitor_width, monitor_height;
@@ -52,8 +54,10 @@ struct Application {
 
 	Game game;
 	Input input;
-
 	AssetManager asset_manager;
+
+	ScratchArenas scratch;
+
 	float dt; // Delta time.
 };
 
@@ -62,4 +66,12 @@ void update_app(Application *app);
 void draw_app(Application *app);
 void shutdown_app(Application *app);
 
+// Scratch arena stuff.
+inline Arena *get_current_arena_frame() {
+	return &g_app->scratch.arenas[g_app->scratch.current];
+}
+inline Arena *get_prev_arena_frame() {
+	return &g_app->scratch.arenas[1-g_app->scratch.current];
+}
+void flip_scratch_arenas(Application *app);
 #endif

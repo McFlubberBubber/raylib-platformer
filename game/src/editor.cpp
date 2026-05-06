@@ -11,29 +11,28 @@ static void draw_editor_ui(Game *game) {
 	const s32 buffer_size = 64;
 
     Vector2	pos = { 0.0f, (float)(g_app->game_height - font_size) };
+	auto arena = get_current_arena_frame();
 	
-	String camera_str = string_format(&game->temp_arena, "Camera | X: %.2f, Y: %.2f", session->camera.raylib_cam.target.x, session->camera.raylib_cam.target.y);
+	String camera_str = string_format(arena, "Camera | X: %.2f, Y: %.2f", session->camera.raylib_cam.target.x, session->camera.raylib_cam.target.y);
 	draw_text_ex_with_string(editor_font, camera_str, pos, font_size, spacing, WHITE);
 
-	String camera_zoom_str = string_format(&game->temp_arena, "Current Zoom | %.4f", session->camera.raylib_cam.zoom);
+	String camera_zoom_str = string_format(arena, "Current Zoom | %.4f", session->camera.raylib_cam.zoom);
 	pos.y -= font_size;
 	draw_text_ex_with_string(editor_font, camera_zoom_str, pos, font_size, spacing, WHITE);
-
 	
 	Vector2 snapped_mouse_pos = get_snapped_mouse_pos_in_world(&game->session);
-	String snapped_str = string_format(&game->temp_arena, "Snapped mouse pos | X: %.2f, Y: %.2f", snapped_mouse_pos.x, snapped_mouse_pos.y);
+	String snapped_str = string_format(arena, "Snapped mouse pos | X: %.2f, Y: %.2f", snapped_mouse_pos.x, snapped_mouse_pos.y);
 	pos.y -= font_size;
 	draw_text_ex_with_string(editor_font, snapped_str, pos, font_size, spacing, WHITE);
-
 	
 	StringBuilder sb = {};
-	strbuild_append_cstring(&game->temp_arena, &sb, "Editor Mode: ");
+	strbuild_append_cstring(arena, &sb, "Editor Mode: ");
 	switch (session->editor.mode) {
-	case EDITOR_VIEW:  { strbuild_append_cstring(&game->temp_arena, &sb, "VIEW");  break; }
-	case EDITOR_TILES: { strbuild_append_cstring(&game->temp_arena, &sb, "TILES"); break; }
-	default:	       { strbuild_append_cstring(&game->temp_arena, &sb, "ERROR");        break; }
+	case EDITOR_VIEW:  { strbuild_append_cstring(arena, &sb, "VIEW");  break; }
+	case EDITOR_TILES: { strbuild_append_cstring(arena, &sb, "TILES"); break; }
+	default:	       { strbuild_append_cstring(arena, &sb, "ERROR");        break; }
 	}
-	strbuild_terminate(&game->temp_arena, &sb);
+	strbuild_terminate(arena, &sb);
 	pos.y -= font_size;
 	draw_text_ex_with_string(editor_font, sb.buffer, pos, font_size, spacing, WHITE);
 }

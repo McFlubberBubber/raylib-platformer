@@ -26,7 +26,8 @@ int main() {
 		process_command_list(&app.game);
 		draw_app(&app);
 
-		arena_reset(&app.game.temp_arena);
+		// arena_reset(&app.game.temp_arena);
+		flip_scratch_arenas(&app);
 	}
 
 	shutdown_app(&app);

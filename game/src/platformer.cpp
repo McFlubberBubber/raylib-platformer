@@ -12,8 +12,9 @@ static void draw_debug_overlay(Game *game) {
 	DrawFPS(0, 0);
 
 	Player *player = &game->session.player;
-	const Font *font = get_font(FONT_CONSOLE);
+	Arena *arena = get_current_arena_frame();
 
+	const Font *font = get_font(FONT_CONSOLE);
 	const s32 font_size = 24;
 	const s32 spacing   = 0;
 	const s32 text_x    = 0;
@@ -23,109 +24,109 @@ static void draw_debug_overlay(Game *game) {
 
 	StringBuilder builder = {0};
 	String final_str;
-	strbuild_append_cstring(&game->temp_arena, &builder, "PLAYER_STATE: ");
+	strbuild_append_cstring(arena, &builder, "PLAYER_STATE: ");
 	switch(player->state) {
 	case PLAYER_IDLE: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "IDLE");
+		strbuild_append_cstring(arena, &builder, "IDLE");
 		break;
 	}
 	case PLAYER_MOVING: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "MOVING");
+		strbuild_append_cstring(arena, &builder, "MOVING");
 		break;
 	}
 	case PLAYER_JUMPING: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "JUMPING");
+		strbuild_append_cstring(arena, &builder, "JUMPING");
 		break;
 	}
 	case PLAYER_FALLING: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "FALLING");
+		strbuild_append_cstring(arena, &builder, "FALLING");
 		break;
 	}
 	case PLAYER_HURT: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "HURT");
+		strbuild_append_cstring(arena, &builder, "HURT");
 		break;
 	}
 	case PLAYER_DEAD: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "DEAD");
+		strbuild_append_cstring(arena, &builder, "DEAD");
 		break;
 	}
 
 	default: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "ERROR");
+		strbuild_append_cstring(arena, &builder, "ERROR");
 		break;
 	}
 	}
 
 	Vector2 pos = { text_x, text_y };
-	final_str = strbuild_terminate(&game->temp_arena, &builder);
+	final_str = strbuild_terminate(arena, &builder);
 	draw_text_ex_with_string(font, final_str, pos, font_size, spacing, WHITE);
 	strbuild_reset(&builder);
 	
 	// Drawing if grounded / not grounded on the player.
-	strbuild_append_cstring(&game->temp_arena, &builder, player->is_grounded ? "PLAYER: IS_GROUNDED" : "PLAYER: NOT_GROUNDED");
-	final_str = strbuild_terminate(&game->temp_arena, &builder);
+	strbuild_append_cstring(arena, &builder, player->is_grounded ? "PLAYER: IS_GROUNDED" : "PLAYER: NOT_GROUNDED");
+	final_str = strbuild_terminate(arena, &builder);
 	pos.y = text_y + font_size;		
 	draw_text_ex_with_string(font, final_str, pos, font_size, spacing, WHITE);
 	strbuild_reset(&builder);
 	
 	// Drawing player positions.
-	String player_pos_x = string_format(&game->temp_arena, "PLAYER_X: %2f", player->sprite.x); 
+	String player_pos_x = string_format(arena, "PLAYER_X: %2f", player->sprite.x); 
 	pos.y = text_y + (font_size * 2);
 	draw_text_ex_with_string(font, player_pos_x, pos, font_size, spacing, WHITE);
-	String player_pos_y = string_format(&game->temp_arena, "PLAYER_Y: %2f", player->sprite.y); 
+	String player_pos_y = string_format(arena, "PLAYER_Y: %2f", player->sprite.y); 
 	pos.y = text_y + (font_size * 3);
 	draw_text_ex_with_string(font, player_pos_y, pos, font_size, spacing, WHITE);
 
 	// Drawing game state.
-	strbuild_append_cstring(&game->temp_arena, &builder, "GAME_STATE: ");
+	strbuild_append_cstring(arena, &builder, "GAME_STATE: ");
 	switch(game->state) {
 	case GAME_OPENING_MENU: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "OPENING_MENU");
+		strbuild_append_cstring(arena, &builder, "OPENING_MENU");
 		break;
 	}
 	case GAME_MENU: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "MENU");
+		strbuild_append_cstring(arena, &builder, "MENU");
 		break;
 	}
 	case GAME_WORLD: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "WORLD");
+		strbuild_append_cstring(arena, &builder, "WORLD");
 		break;
 	}
 	case GAME_EDITOR: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "EDITOR");
+		strbuild_append_cstring(arena, &builder, "EDITOR");
 		break;
 	}
 	default: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "ERROR");
+		strbuild_append_cstring(arena, &builder, "ERROR");
 		break;
 	}
 	}
 	pos.y = text_y + (font_size * 4);
-	final_str = strbuild_terminate(&game->temp_arena, &builder);
+	final_str = strbuild_terminate(arena, &builder);
 	draw_text_ex_with_string(font, final_str, pos, font_size, spacing, WHITE);
 	strbuild_reset(&builder);
 	
-	strbuild_append_cstring(&game->temp_arena, &builder, "MENU_PAGE: ");
+	strbuild_append_cstring(arena, &builder, "MENU_PAGE: ");
 	switch(game->menu.current_page) {
 	case PAGE_MAIN: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "MAIN");
+		strbuild_append_cstring(arena, &builder, "MAIN");
 		break;
 	}
 	case PAGE_SETTINGS: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "SETTINGS");
+		strbuild_append_cstring(arena, &builder, "SETTINGS");
 		break;
 	}
 	case PAGE_CONTROLS: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "CONTROLS");
+		strbuild_append_cstring(arena, &builder, "CONTROLS");
 		break;
 	}
 	default: {
-		strbuild_append_cstring(&game->temp_arena, &builder, "ERROR");
+		strbuild_append_cstring(arena, &builder, "ERROR");
 		break;
 	}
 	}
 	pos.y = text_y + (font_size * 5);
-	final_str = strbuild_terminate(&game->temp_arena, &builder);
+	final_str = strbuild_terminate(arena, &builder);
 	draw_text_ex_with_string(font, final_str, pos, font_size, spacing, WHITE);
 	strbuild_reset(&builder);
 }
@@ -183,8 +184,6 @@ void init_game_session(GameSession *session) {
 }
 
 void init_game(Game *game) {
-	arena_init(&game->temp_arena, megabytes(16));
-
 	init_console(&game->console);
 	init_game_session(&game->session);
 }
@@ -257,7 +256,7 @@ void draw_game(Game *game) {
 
 void cleanup_game(Game *game) {
 	arena_free(&game->session.world_arena);
-	arena_free(&game->temp_arena);
+	// arena_free(&game->temp_arena);
 	
 	cleanup_console(&game->console);
 }

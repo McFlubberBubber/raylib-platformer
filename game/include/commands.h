@@ -6,6 +6,7 @@
 const s32 MAX_COMMAND_COUNT = 16;
 
 struct Game;
+struct ParseResult;
 
 enum GameState {
 	GAME_OPENING_MENU = 0,
@@ -19,18 +20,22 @@ enum GameState {
 
 enum CommandType {
 	CMD_NONE = 0,
+	
+	// Game state manipulation.
 	CMD_CHANGE_STATE,
 	CMD_RESET_GAME,
 	CMD_QUIT_GAME,
 
+	// Developer utilities.
 	CMD_TOGGLE_DEBUG_MODE,
-	CMD_TOGGLE_BIG_CONSOLE,
 	CMD_TOGGLE_SMALL_CONSOLE,
-
+	CMD_TOGGLE_BIG_CONSOLE,
 	CMD_TOGGLE_EDITOR_MODE,
 
 	// Console-specific commands.
-	CMD_CLEAR_LOGS,
+	CMD_CLEAR_CONSOLE_LOGS,
+	CMD_CLEAR_CONSOLE_HISTORY,
+	CMD_HELP,
 	
 	CMD_COUNT
 };
@@ -42,10 +47,18 @@ struct GameCommand {
 	} data;
 };
 
-// Stuff relating to the application / game commands.
+struct CommandInfo {
+	String name;
+	void (*proc)(ParseResult *); // This procedure pushes commands into the queue and nothing else.
+};
+
+void init_commands();
+void cleanup_commands();
+void add_command(const char *name, void (*proc)(ParseResult *));
+void run_command(ParseResult *result);
+
 void push_command_simple(Game *game, CommandType type);
 void push_command_change_state(Game *game, GameState target_state);
 void process_command_list(Game *game);
-
 
 #endif

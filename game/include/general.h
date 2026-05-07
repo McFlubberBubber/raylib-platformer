@@ -210,6 +210,12 @@ void dynamic_array_add(DynamicArray<T> *arr, T value) {
 }
 
 template <typename T>
+T *dynamic_array_get_at_index(DynamicArray<T> *arr, size_t index) {
+	assert(index < arr->count);
+	return &arr->data[index];
+}
+
+template <typename T>
 void dynamic_array_free(DynamicArray<T> *arr) {
 	assert(arr);
 	MemFree(arr->data);

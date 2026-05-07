@@ -14,6 +14,16 @@
 
 int main() {
 	Application app = {};
+
+    /*
+    DynamicArray<int> numbers = {};
+    dynamic_array_init(&numbers);
+    dynamic_array_add(&numbers, 5);
+    dynamic_array_add(&numbers, 10);
+    dynamic_array_add(&numbers, 69);
+    dynamic_array_add(&numbers, 1337);
+    */
+
 	init_app(&app);
 
 	while (!WindowShouldClose() && !app.should_close) {

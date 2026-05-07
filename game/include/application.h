@@ -8,7 +8,7 @@
 #include "input.h"
 #include "assets.h"
 
-const uint32_t DESIRED_FPS = 144;
+const u32 DESIRED_FPS = 144;
 
 struct Application;
 extern Application *g_app;
@@ -71,7 +71,7 @@ inline Arena *get_current_arena_frame() {
 	return &g_app->scratch.arenas[g_app->scratch.current];
 }
 inline Arena *get_prev_arena_frame() {
-	return &g_app->scratch.arenas[1-g_app->scratch.current];
+	return &g_app->scratch.arenas[1 - g_app->scratch.current];
 }
 void flip_scratch_arenas(Application *app);
 #endif

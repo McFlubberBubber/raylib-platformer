@@ -149,10 +149,6 @@ static void draw_input_area(Console *console) {
 	}
 }
 
-static void execute_command(Console *console, ParseResult *result) {
-	
-}
-
 void init_console(Console *console) {
 	// Member initialization.
 	console->is_initialized = true;
@@ -177,10 +173,10 @@ void init_console(Console *console) {
 	console->log_buffer.log_count = 0;
 	console->history.count = 0;
 
-	// @TODO: Load up console arguments here.
 	array_init(&console->history, &console->arena, CONSOLE_MAX_HISTORY);
+	init_commands();
 	
-	push_log(console, "This is the console. Type 'help' for more commands.", CONSOLE_LOG_INFO);
+	push_log("This is the console. Type 'help' for more commands.", CONSOLE_LOG_INFO);
 }
 
 void draw_console(Console *console) {
@@ -194,6 +190,7 @@ void draw_console(Console *console) {
 void cleanup_console(Console *console) {
 	arena_free(&console->arena);
 	// dynamic_array_free(&console->history);
+	cleanup_commands();
 }
 
 void insert_character(Console *console, int character) {
@@ -261,22 +258,22 @@ void submit_command(Console *console) {
 	char *command = console->input.data;
 	ConsoleLogType type = CONSOLE_LOG_COMMAND;
 
-	push_log(console, command, type);
+	push_log(command, type);
 	array_add(&console->history, string_create(&console->arena, command));
-
-//	String *output = push_array_to_arena(&g_app->game.temp_arena, String, MAX_TOKEN_COUNT);
-//	String cmd = string_create(&g_app->game.temp_arena, command);
 
 	Arena *arena = get_current_arena_frame();
 	String *output = push_array_to_arena(arena, String, MAX_TOKEN_COUNT);
 	String cmd = string_create(arena, command);
 	s32 token_count = string_split_whitespace(cmd, output, MAX_TOKEN_COUNT);
+
+/*
 	for (s32 i = 0; i < token_count; ++i) {
 		printf("Token %d: %.*s\n", i, (s32)output[i].length, output[i].data);
 	}
-
+*/
+	
 	ParseResult result = { output, token_count };
-	execute_command(console, &result);
+	run_command(&result);
 	clear_input_area(console);
 	console->history_index = -1;
 }
@@ -301,7 +298,6 @@ void move_cursor_by_char(Console* console, bool is_forward) {
 void move_cursor_by_word(Console* console, bool is_forward) {
 	int old_pos = console->input.cursor_pos;
 	int *current_pos = &console->input.cursor_pos; // Aliasing.
-//	int& current_pos = console->input.cursor_pos;
 
 	char* text = console->input.data;
 	int length = console->input.length;
@@ -336,28 +332,25 @@ void move_cursor_by_word(Console* console, bool is_forward) {
 	if (*current_pos != old_pos) { console->input.cursor_blink_time = 0.0f; }
 }
 
-void push_log(Console *console, const char *message, ConsoleLogType type) {
+void push_log(const char *message, ConsoleLogType type) {
+	Console *console = &g_app->game.console;
+
 	ConsoleLogBuffer *buffer = &console->log_buffer;
 	if (buffer->log_count >= CONSOLE_MAX_LOGS) {
 		// @TODO: Handle full log array.
 		return;
 	}
-
 	int message_length = strlen(message) + 1; // Accounting for the null terminator.
 	
 	char *dest = (char *)arena_allocate(&console->arena, message_length, 1);
 	if (!dest) return; // Arena is full.
-	
 	memcpy(dest, message, message_length);
 	
 	ConsoleLog *log = &buffer->logs[buffer->log_count++];
 	log->message = dest;
 	log->type    = type;
 
-#if 1
-	printf("Console received: %s | log_count: %d\n", log->message, console->log_buffer.log_count);
-#endif
-
+	// printf("Console received: %s | log_count: %d\n", log->message, console->log_buffer.log_count);
 	return;
 }
 
@@ -383,7 +376,7 @@ void navigate_command_history(Console *console, bool move_forward) {
 		}
 	}
 	
-	printf("history_index: %d\n", console->history_index);
+	// printf("history_index: %d\n", console->history_index);
 	
 	String *command = array_get_at_index(&console->history, console->history_index);
 	for (u32 i = 0; i < command->length; ++i) {

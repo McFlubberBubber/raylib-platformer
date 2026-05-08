@@ -251,7 +251,6 @@ s32 string_split_whitespace(String str, String *out, s32 max_tokens) {
 static void strbuild_append(Arena *arena, StringBuilder *sb, const char *data, u64 length) {
 	assert(arena);
 	assert(sb);
-	
 	assert(data);
 	// @TODO: This is a super band-aid fix since this means we can pass Strings to this procedure
 	// while the String is empty, which doesn't seem terrible. But it could bite us in the long
@@ -268,11 +267,12 @@ static void strbuild_append(Arena *arena, StringBuilder *sb, const char *data, u
 }
 
 void strbuild_append_string(Arena *arena, StringBuilder *sb, String str) {
+	if (str.length == 0 || str.data == nullptr) return;
 	strbuild_append(arena, sb, str.data, str.length);
 }
 
 void strbuild_append_cstring(Arena *arena, StringBuilder *sb, const char *data) {
-	assert(data);
+	if (!data || data[0] == '\0') return;
 	u64 length = 0;
 	while (data[length]) length++;
 	strbuild_append(arena, sb, data, length);
@@ -331,10 +331,6 @@ void draw_text_ex_with_string(const Font *font, String str, Vector2 pos, s32 fon
 }
 
 Vector2 measure_text_ex_with_string(const Font *font, String str, float font_size, float font_spacing) {
-	if (str.data) {
-		return MeasureTextEx(*font, string_to_cstr(str), font_size, font_spacing);
-	} else {
-		fprintf(stderr, "[MEASURE_TEXT_WITH_STRING] Received a String with NULL data.\n");
-		return { 0, 0 };
-	}
+	if (string_is_empty(str)) return { 0, 0 };
+	return MeasureTextEx(*font, string_to_cstr(str), font_size, font_spacing);
 }

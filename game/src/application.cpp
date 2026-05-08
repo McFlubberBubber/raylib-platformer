@@ -87,7 +87,7 @@ void init_app(Application *app) {
    	}
 
 	SetTargetFPS(app->target_fps);
-	SetExitKey(KEY_Q);
+	SetExitKey(KEY_END);
 
 	HideCursor();
 	DisableCursor();

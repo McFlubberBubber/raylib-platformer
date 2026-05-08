@@ -84,13 +84,12 @@ static Array<String> wrap_text(String message, const float max_width) {
 			} else {
 				strbuild_append_string(scratch, &test_builder, line_builder.buffer);
 				strbuild_append_cstring(scratch, &test_builder, " ");
-				if (word_builder.buffer.length > 0)  strbuild_append_string(scratch, &test_builder, word_builder.buffer);
+				strbuild_append_string(scratch, &test_builder, word_builder.buffer);
 			}
 			
-			String test_str = strbuild_terminate(scratch, &test_builder);
-			// strbuild_reset(&sb);
+			String test = strbuild_terminate(scratch, &test_builder);
 
-			Vector2 measured = measure_text_ex_with_string(font, test_str, font_size, font_spacing);
+			Vector2 measured = measure_text_ex_with_string(font, test, font_size, font_spacing);
 			if (measured.x > max_width && line_builder.buffer.length > 0) {
 				array_add(&lines, string_copy(scratch, line_builder.buffer));
 				
@@ -100,7 +99,7 @@ static Array<String> wrap_text(String message, const float max_width) {
 			} else {
 				// Accept the combined line.
 				strbuild_reset(&line_builder);
-				strbuild_append_string(scratch, &line_builder, test_str);
+				strbuild_append_string(scratch, &line_builder, test);
 			}
 
 			// Reset current word, then handle the newline.
@@ -127,17 +126,15 @@ static Array<String> wrap_text(String message, const float max_width) {
 			strbuild_append_string(scratch, &test_builder, word_builder.buffer);
 		}
 						
-		String test_str = strbuild_terminate(scratch, &test_builder);
-		// strbuild_reset(&sb);
-			
-		Vector2 measured = measure_text_ex_with_string(font, test_str, font_size, font_spacing);
+		String test = strbuild_terminate(scratch, &test_builder);
+
+		Vector2 measured = measure_text_ex_with_string(font, test, font_size, font_spacing);
 		if (measured.x > max_width && line_builder.buffer.length > 0) {
 			array_add(&lines, string_copy(scratch, line_builder.buffer));
 			array_add(&lines, string_copy(scratch, word_builder.buffer));
 		} else {
-			array_add(&lines, string_copy(scratch, test_str));
+			array_add(&lines, string_copy(scratch, test));
 		}
-			
 	} else if (line_builder.buffer.length > 0) {
 		array_add(&lines, string_copy(scratch, line_builder.buffer));
 	}
@@ -376,26 +373,27 @@ void delete_word(Console* console) {
 
 void submit_command(Console *console) {
 	const u32 MAX_TOKEN_COUNT = 16;
-	if (console->input.length == 0) return; 
-	char *command = console->input.data;
-	ConsoleLogType type = CONSOLE_LOG_COMMAND;
+	if (console->input.length == 0) return;
 
-	push_log(command, type);
+	// First, add the command to the history.
+	char *command = console->input.data;	
 	array_add(&console->history, string_create(&console->arena, command));
 
+	// Turn the inputted command into our String so that we can log it with
+	// formatting + parse the tokens.
 	Arena *scratch = get_current_arena_frame();
 	String *output = push_array_to_arena(scratch, String, MAX_TOKEN_COUNT);
-	String cmd = string_create(scratch, command);
-	s32 token_count = string_split_whitespace(cmd, output, MAX_TOKEN_COUNT);
-
-/*
-	for (s32 i = 0; i < token_count; ++i) {
-		printf("Token %d: %.*s\n", i, (s32)output[i].length, output[i].data);
-	}
-*/
+	String command_as_string = string_create(scratch, command);
 	
+	StringBuilder sb = {};
+	strbuild_append_cstring(scratch, &sb, "> ");
+	strbuild_append_string(scratch, &sb, command_as_string);
+	const char *log_text = string_to_cstr(strbuild_terminate(scratch, &sb));
+	push_log(log_text, CONSOLE_LOG_COMMAND);
+
+	s32 token_count = string_split_whitespace(command_as_string, output, MAX_TOKEN_COUNT);
 	ParseResult result = { output, token_count };
-	run_command(cmd, &result);
+	run_command(command_as_string, &result);
 	clear_input_area(console);
 	console->history_index = -1;
 }

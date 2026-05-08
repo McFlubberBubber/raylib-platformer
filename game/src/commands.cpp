@@ -100,6 +100,27 @@ static void clear_console_history(ParseResult *result) {
 	push_command_simple(&g_app->game, CMD_CLEAR_CONSOLE_HISTORY);
 }
 
+static void request_help(ParseResult *result) {
+	if (result->count == 1) {
+		push_log("===== 'help' =====", CONSOLE_LOG_INFO);
+		push_log("This command will provide the expected usage of each command. You can simply input the following to find out more details of each command:", CONSOLE_LOG_INFO);
+		push_log("Usage: help <command>", CONSOLE_LOG_INFO);
+		push_log("To see a list of valid commands, type 'help commands'", CONSOLE_LOG_INFO);
+		push_log("=====================", CONSOLE_LOG_INFO);
+		return;
+	}
+
+	String second = result->tokens[1];
+	if (string_comp(second, string_literal_create("console"))) {
+		push_log("===== 'console' =====", CONSOLE_LOG_INFO);
+		push_log("This command allows toggling the different states of the console within the console itself, which is kinda useless, but it is a command you can dispatch to!", CONSOLE_LOG_INFO);
+		push_log("Usage: console <state>", CONSOLE_LOG_INFO);
+		push_log("List of states: small, big", CONSOLE_LOG_INFO);
+		push_log("=====================", CONSOLE_LOG_INFO);
+		return;
+	}
+}
+
 // ===== END OF COMMAND LIST. =====
 
 void init_commands() {
@@ -115,6 +136,8 @@ void init_commands() {
 
 	add_command("cls", clear_console_logs);
 	add_command("clear_history", clear_console_history);
+	add_command("help", request_help);
+	
 }
 void cleanup_commands() {
 	dynamic_array_free(&commands);

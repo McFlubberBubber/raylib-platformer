@@ -29,8 +29,8 @@ static void calculate_game_viewport(Application *app) {
 void init_app(Application *app) {
 	g_app = app;
 
-	arena_init(&app->scratch.arenas[0], megabytes(16));
-	arena_init(&app->scratch.arenas[1], megabytes(16));
+	arena_init(&app->scratch.arenas[0], SCRATCH_ARENA_SIZE);
+	arena_init(&app->scratch.arenas[1], SCRATCH_ARENA_SIZE);
 
 	// Setting window size based on user preference (should be loaded from a config eventually).
 	switch (app->res) {

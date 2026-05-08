@@ -203,6 +203,12 @@ String string_copy(Arena *arena, String str) {
 	return {data, str.length};
 }
 
+String string_copy_cstr(Arena *arena, const char *data) {
+	assert(arena);
+	if (!data) return {};
+	return string_copy(arena, string_view((char *)data, strlen(data)));
+}
+
 String string_trim_left(String s) {
     while (s.length > 0 && (s.data[0] == ' ' || s.data[0] == '\t')) {
         s.data++;
@@ -243,7 +249,14 @@ s32 string_split_whitespace(String str, String *out, s32 max_tokens) {
 
 // ===== String Builder stuff... =====
 static void strbuild_append(Arena *arena, StringBuilder *sb, const char *data, u64 length) {
-	assert(arena && sb && data);
+	assert(arena);
+	assert(sb);
+	
+	assert(data);
+	// @TODO: This is a super band-aid fix since this means we can pass Strings to this procedure
+	// while the String is empty, which doesn't seem terrible. But it could bite us in the long
+	// term, therefore I am going to leave this todo message here.
+
 	char *dest = (char *)arena_allocate(arena, length, alignof(char));
 	assert(dest);
 	if (sb->buffer.data == nullptr) {
@@ -263,6 +276,11 @@ void strbuild_append_cstring(Arena *arena, StringBuilder *sb, const char *data) 
 	u64 length = 0;
 	while (data[length]) length++;
 	strbuild_append(arena, sb, data, length);
+}
+
+void strbuild_append_char(Arena *arena, StringBuilder *sb, char c) {
+	char temp = c;
+	strbuild_append(arena, sb, &temp, 1);
 }
 
 void strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...) {

@@ -9,6 +9,7 @@
 #include "assets.h"
 
 const u32 DESIRED_FPS = 144;
+const u32 SCRATCH_ARENA_SIZE = megabytes(2);
 
 struct Application;
 extern Application *g_app;

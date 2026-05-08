@@ -5,11 +5,10 @@
 #include "commands.h"
 #include "general.h"
 
-const s32 CONSOLE_INPUT_SIZE  = 512;
-const s32 CONSOLE_MAX_LOGS    = 256;
-const s32 CONSOLE_MAX_HISTORY = 64;
-
-const s32 CONSOLE_ARENA_SIZE = kilobytes(128);
+const u32 CONSOLE_INPUT_SIZE  = 512;
+const u32 CONSOLE_MAX_LOGS    = 256;
+const u32 CONSOLE_MAX_HISTORY = 64;
+const u32 CONSOLE_ARENA_SIZE = kilobytes(128);
 
 // Forward declarations.
 struct Console;
@@ -31,6 +30,10 @@ enum ConsoleState {
 struct ConsoleLog {
 	ConsoleLogType type = CONSOLE_LOG_INFO;
 	char *message;
+
+	// Caching wrap data so it lives within the console arena.
+	Array<String> wrapped_lines;
+	float         cached_width;
 };
 
 struct ConsoleLogBuffer {
@@ -62,8 +65,6 @@ struct Console {
 
 	Array<String> history;
 	s32 history_index; // We use -1 as "not browsing history" mode.
-
-	// Command commands[CMD_COUNT] = { 0 };
 
 	bool is_initialized;
 };

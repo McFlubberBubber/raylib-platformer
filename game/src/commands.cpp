@@ -85,7 +85,7 @@ static void toggle_editor(ParseResult *result) {
 //
 static void clear_console_logs(ParseResult *result) {
 	if (result->count != 1) {
-		push_log("ERROR ::  Received additional arguments for a command that does not have any parameters! Expected usage: cls", CONSOLE_LOG_ERROR);
+		push_log("ERROR :: Received additional arguments for a command that does not have any parameters! Expected usage: cls", CONSOLE_LOG_ERROR);
 		return;
 	}
 	push_command_simple(&g_app->game, CMD_CLEAR_CONSOLE_LOGS);
@@ -93,7 +93,7 @@ static void clear_console_logs(ParseResult *result) {
 
 static void clear_console_history(ParseResult *result) {
 	if (result->count != 1) {
-		push_log("ERROR ::  Received additional arguments for a command that does not have any parameters! Expected usage: clear_history", CONSOLE_LOG_ERROR);
+		push_log("ERROR :: Received additional arguments for a command that does not have any parameters! Expected usage: clear_history", CONSOLE_LOG_ERROR);
 		return;
 	}
 	push_log("Cleared command history.", CONSOLE_LOG_OUTPUT);
@@ -129,7 +129,8 @@ void add_command(const char *name, void (*proc)(ParseResult *)) {
 	dynamic_array_add(&commands, cmd);
 }
 
-void run_command(ParseResult *result) {
+// cmd = full string of the inputted command, *result are the tokens.
+void run_command(String cmd, ParseResult *result) {
 	bool found = false;
 	for (u32 i = 0; i < commands.count; ++i) {
 		auto command = dynamic_array_get_at_index(&commands, i);
@@ -140,7 +141,32 @@ void run_command(ParseResult *result) {
 	}
 
 	if (!found) {
-		push_log("Unknown command.", CONSOLE_LOG_ERROR);
+		#if 0
+		
+		StringBuilder sb = {};
+		Arena *scratch = get_current_arena_frame();
+		if (result->count == 1) {
+			strbuild_append_string(scratch, &sb, result->tokens[0]);
+		} else {
+			for (s32 i = 0; i < result->count; ++i) {
+				strbuild_append_char(scratch, &sb, ' ');
+				strbuild_append_string(scratch, &sb, result->tokens[i]);
+			}
+		}
+		strbuild_append_cstring(scratch, &sb, ": Unknown command.");
+		String message = strbuild_terminate(scratch, &sb);
+		push_log(string_to_cstr(message), CONSOLE_LOG_ERROR);
+		
+		#else
+		
+		StringBuilder sb = {};
+		Arena *scratch = get_current_arena_frame();
+		strbuild_append_string(scratch, &sb, cmd);
+		strbuild_append_cstring(scratch, &sb, ": Unknown command.");
+		const char *message = string_to_cstr(strbuild_terminate(scratch, &sb));
+		push_log(message, CONSOLE_LOG_ERROR);
+		
+		#endif
 	}
 }
 

@@ -55,7 +55,7 @@ struct CommandInfo {
 void init_commands();
 void cleanup_commands();
 void add_command(const char *name, void (*proc)(ParseResult *));
-void run_command(ParseResult *result);
+void run_command(String cmd, ParseResult *result);
 
 void push_command_simple(Game *game, CommandType type);
 void push_command_change_state(Game *game, GameState target_state);

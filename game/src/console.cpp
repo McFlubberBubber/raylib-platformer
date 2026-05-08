@@ -51,56 +51,178 @@ static void update_openness(Console *console, float dt) {
 	console->rect.height = (float)console->openness;
 }
 
-static void draw_logs(Console* console) {
-	// First, draw the rectangle that will contain the logs.
-	const float log_x 	   = console->rect.x;
-    const float log_y	   = console->rect.y;
-	const float log_width  = console->rect.width;
-	const float log_height = console->rect.height - console->input.height;
-	
-	Rectangle log_rect = { log_x, log_y, log_width, log_height };
-	Color log_bg_color = { 25, 25, 25, 255 };
-	
-	DrawRectangleRec(log_rect, log_bg_color);
-
-	// Then, draw the actual logs.
-	const int log_padding = 6;
-	const int log_count = console->log_buffer.log_count;
-	const int log_line_height = 36;
+// @TODO: So currently, this procedure does indeed wrap text, but there are some issues with it.
+// For one, we constantly do this strbuild_append thing every frame, when we could much rather just
+// do it once. In addition, there are a lot of string_copy() calls which could be reduced to none.
+// Finally, during some of the appends, in the event that a log that gets pushed appears to end
+// perfectly at the end of the screen (check toggle_editor() in commands.cpp to see the log itself),
+// we end up hitting the assert(data) that is seen within the strbuild_append(), so there's
+// a lot of stuff to fix here.	-nathan, 07/05/2026.
+static Array<String> wrap_text(String message, const float max_width) {
+	Arena *scratch = get_current_arena_frame();
+	Array<String> lines = {};
+	array_init(&lines, scratch, 64); // @Hardcode.
+	if (string_is_empty(message)) return lines;
 
 	const Font *font = get_font(FONT_CONSOLE);
-	const int font_size = 32;
-	const int text_x    = log_x + log_padding;
-	int text_y          = log_y + log_height - font_size - log_padding;
-	Color text_color;
+	const float font_size = 32.0f;
+	const float font_spacing = 0.0f;
 
-	// @TODO: Does this make a difference?
-	BeginScissorMode(log_x, log_y, log_width, log_height);
+//	StringBuilder sb = {};
+//	String current_line = {};
+//	String current_word = {};
+	StringBuilder line_builder = {};
+	StringBuilder word_builder = {};
 
-	for (int i = log_count - 1; i >= 0; --i) {
-		if (text_y + font_size < log_y + font_size) break;
-
-		ConsoleLog *log = &console->log_buffer.logs[i];
-		char *text = log->message; 
-
-		switch (log->type) {
-		case CONSOLE_LOG_COMMAND: { text_color = RAYWHITE; break; }
-		case CONSOLE_LOG_OUTPUT:  { text_color = GREEN;    break; }
-		case CONSOLE_LOG_ERROR:   { text_color = RED;      break; }
-		case CONSOLE_LOG_WARNING: { text_color = ORANGE;   break; }
-		case CONSOLE_LOG_INFO:    { text_color = RAYWHITE; break; }
+	for (s32 i = 0; i < message.length; ++i) {
+		char c = message.data[i];
+		if (c == ' ' || c == '\n') {
+			// Build a test string with the current_line + " " + current_word.
+			StringBuilder test_builder = {};
+			if (line_builder.buffer.length == 0) {
+				strbuild_append_string(scratch, &test_builder, word_builder.buffer);
+			} else {
+				strbuild_append_string(scratch, &test_builder, line_builder.buffer);
+				strbuild_append_cstring(scratch, &test_builder, " ");
+				if (word_builder.buffer.length > 0)  strbuild_append_string(scratch, &test_builder, word_builder.buffer);
+			}
 			
-		default: { text_color = RAYWHITE; break; } 
+			String test_str = strbuild_terminate(scratch, &test_builder);
+			// strbuild_reset(&sb);
+
+			Vector2 measured = measure_text_ex_with_string(font, test_str, font_size, font_spacing);
+			if (measured.x > max_width && line_builder.buffer.length > 0) {
+				array_add(&lines, string_copy(scratch, line_builder.buffer));
+				
+				// New line becomes the current word.
+				strbuild_reset(&line_builder);
+				strbuild_append_string(scratch, &line_builder, word_builder.buffer);
+			} else {
+				// Accept the combined line.
+				strbuild_reset(&line_builder);
+				strbuild_append_string(scratch, &line_builder, test_str);
+			}
+
+			// Reset current word, then handle the newline.
+			strbuild_reset(&word_builder);
+			if (c == '\n') {
+				if (line_builder.buffer.length > 0) {
+					array_add(&lines, string_copy(scratch, line_builder.buffer));
+				}
+				strbuild_reset(&line_builder);
+			}
+		} else {
+			strbuild_append_char(scratch, &word_builder, c);
 		}
+	}
+	
+	// Handle the remaining word and line.
+	if (word_builder.buffer.length > 0) {
+		StringBuilder test_builder = {};
+		if (line_builder.buffer.length == 0) {
+			strbuild_append_string(scratch, &test_builder, word_builder.buffer);
+		} else {
+			strbuild_append_string(scratch, &test_builder, line_builder.buffer);
+			strbuild_append_cstring(scratch, &test_builder, " ");
+			strbuild_append_string(scratch, &test_builder, word_builder.buffer);
+		}
+						
+		String test_str = strbuild_terminate(scratch, &test_builder);
+		// strbuild_reset(&sb);
+			
+		Vector2 measured = measure_text_ex_with_string(font, test_str, font_size, font_spacing);
+		if (measured.x > max_width && line_builder.buffer.length > 0) {
+			array_add(&lines, string_copy(scratch, line_builder.buffer));
+			array_add(&lines, string_copy(scratch, word_builder.buffer));
+		} else {
+			array_add(&lines, string_copy(scratch, test_str));
+		}
+			
+	} else if (line_builder.buffer.length > 0) {
+		array_add(&lines, string_copy(scratch, line_builder.buffer));
+	}
+	return lines;
+}
 
-		Vector2 pos = { (float)text_x, (float)text_y };
-		const float spacing = 0.0f;
-		DrawTextEx(*font, text, pos, font_size, spacing, text_color);
+static void ensure_log_is_wrapped(Console *console, ConsoleLog *log, float max_width) {
+	if (log->cached_width == max_width && log->wrapped_lines.count > 0) return;
 
-		text_y -= log_line_height;
+	// We need to invalidate and re-wrap since we can't free individual arena allocations.
+	// Therefore, we just reset the array count and re-use the existing capacity.
+	log->wrapped_lines.count = 0;
+
+	Arena *scratch = get_current_arena_frame();
+	String message = string_create(scratch, log->message);
+
+	// Wrap text into the console->arena.
+	Array<String> temp = wrap_text(message, max_width);
+	for (s32 i = 0; i < temp.count; ++i) {
+		String *s = array_get_at_index(&temp, i);
+		String persistent = string_copy(&console->arena, *s);
+		array_add(&log->wrapped_lines, persistent);
 	}
 
-	EndScissorMode();
+	log->cached_width = max_width;
+}
+
+static void draw_logs(Console* console) {
+    // First, draw the rectangle that will contain the logs.
+    const float log_x      = console->rect.x;
+    const float log_y      = console->rect.y;
+    const float log_width  = console->rect.width;
+    const float log_height = console->rect.height - console->input.height;
+    Rectangle log_rect = { log_x, log_y, log_width, log_height };
+    Color log_bg_color = { 25, 25, 25, 255 };
+    DrawRectangleRec(log_rect, log_bg_color);
+
+    // Then, draw the actual logs.
+    const int log_padding = 6;
+    const int log_count = console->log_buffer.log_count;
+    const int log_line_height = 36;
+	const float max_text_width = log_width - (log_padding * 2);
+
+    const Font *font      = get_font(FONT_CONSOLE);
+    const int   font_size = 32;
+
+	const int text_x    = log_x + log_padding;
+    int       text_y    = log_y + log_height - font_size - log_padding;
+    Color     text_color;
+
+    BeginScissorMode(log_x, log_y, log_width, log_height);
+    for (int i = log_count - 1; i >= 0; --i) {
+        if (text_y + font_size < log_y + font_size) break;
+        
+		ConsoleLog *log = &console->log_buffer.logs[i];
+        char *text = log->message;
+		switch (log->type) {
+        case CONSOLE_LOG_COMMAND: { text_color = RAYWHITE; break; }
+        case CONSOLE_LOG_OUTPUT:  { text_color = GREEN;    break; }
+        case CONSOLE_LOG_ERROR:   { text_color = RED;      break; }
+        case CONSOLE_LOG_WARNING: { text_color = ORANGE;   break; }
+        case CONSOLE_LOG_INFO:    { text_color = RAYWHITE; break; }
+        default:				  { text_color = RAYWHITE; break; } 
+        }
+		 
+//		Arena *scratch = get_current_arena_frame();
+//		Array<String> wrapped_lines = wrap_text(string_create(scratch, text), max_text_width);
+		ensure_log_is_wrapped(console, log, max_text_width);
+		for (s32 j = log->wrapped_lines.count - 1; j >= 0; --j) {
+			if (text_y + font_size < log_y + font_size) break;
+			
+			const float font_spacing = 0.0f;
+			Vector2 pos = { (float)text_x, (float)text_y };
+			String *line = array_get_at_index(&log->wrapped_lines, j);
+			draw_text_ex_with_string(font, *line, pos, font_size, font_spacing, text_color);
+			text_y -= log_line_height;
+		}
+		
+		/*
+        const float spacing = 0.0f;
+        DrawTextEx(*font, text, pos, font_size, spacing, text_color);
+        text_y -= log_line_height;
+		*/
+    }
+    EndScissorMode();
 }
 
 static void draw_input_area(Console *console) {
@@ -261,9 +383,9 @@ void submit_command(Console *console) {
 	push_log(command, type);
 	array_add(&console->history, string_create(&console->arena, command));
 
-	Arena *arena = get_current_arena_frame();
-	String *output = push_array_to_arena(arena, String, MAX_TOKEN_COUNT);
-	String cmd = string_create(arena, command);
+	Arena *scratch = get_current_arena_frame();
+	String *output = push_array_to_arena(scratch, String, MAX_TOKEN_COUNT);
+	String cmd = string_create(scratch, command);
 	s32 token_count = string_split_whitespace(cmd, output, MAX_TOKEN_COUNT);
 
 /*
@@ -273,7 +395,7 @@ void submit_command(Console *console) {
 */
 	
 	ParseResult result = { output, token_count };
-	run_command(&result);
+	run_command(cmd, &result);
 	clear_input_area(console);
 	console->history_index = -1;
 }
@@ -334,21 +456,24 @@ void move_cursor_by_word(Console* console, bool is_forward) {
 
 void push_log(const char *message, ConsoleLogType type) {
 	Console *console = &g_app->game.console;
-
 	ConsoleLogBuffer *buffer = &console->log_buffer;
 	if (buffer->log_count >= CONSOLE_MAX_LOGS) {
 		// @TODO: Handle full log array.
 		return;
 	}
+
+/*	
 	int message_length = strlen(message) + 1; // Accounting for the null terminator.
-	
 	char *dest = (char *)arena_allocate(&console->arena, message_length, 1);
 	if (!dest) return; // Arena is full.
 	memcpy(dest, message, message_length);
-	
+*/	
+
 	ConsoleLog *log = &buffer->logs[buffer->log_count++];
-	log->message = dest;
 	log->type    = type;
+	log->message = string_copy_cstr(&console->arena, message).data;
+	log->cached_width = 0.0f;
+	array_init(&log->wrapped_lines, &console->arena, 8);
 
 	// printf("Console received: %s | log_count: %d\n", log->message, console->log_buffer.log_count);
 	return;

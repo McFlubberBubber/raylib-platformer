@@ -153,11 +153,17 @@ static void ensure_log_is_wrapped(Console *console, ConsoleLog *log, float max_w
 
 	// Wrap text into the console->arena.
 	Array<String> temp = wrap_text(message, max_width);
+    /*
 	for (s32 i = 0; i < temp.count; ++i) {
 		String *s = array_get_at_index(&temp, i);
 		String persistent = string_copy(&console->arena, *s);
 		array_add(&log->wrapped_lines, persistent);
 	}
+    */
+    For (temp) {
+        String persistent = string_copy(&console->arena, *it);
+        array_add(&log->wrapped_lines, persistent);
+    }
 
 	log->cached_width = max_width;
 }
@@ -460,21 +466,16 @@ void push_log(const char *message, ConsoleLogType type) {
 		return;
 	}
 
-/*	
-	int message_length = strlen(message) + 1; // Accounting for the null terminator.
-	char *dest = (char *)arena_allocate(&console->arena, message_length, 1);
-	if (!dest) return; // Arena is full.
-	memcpy(dest, message, message_length);
-*/	
-
-	ConsoleLog *log = &buffer->logs[buffer->log_count++];
-	log->type    = type;
-	log->message = string_copy_cstr(&console->arena, message).data;
+	ConsoleLog *log   = &buffer->logs[buffer->log_count++];
+	log->type    	  = type;
+	log->message      = string_copy_cstr(&console->arena, message).data;
 	log->cached_width = 0.0f;
 	array_init(&log->wrapped_lines, &console->arena, 8);
-
-	// printf("Console received: %s | log_count: %d\n", log->message, console->log_buffer.log_count);
 	return;
+}
+
+void push_log(String message, ConsoleLogType type) {
+	push_log(message.data, type);
 }
 
 void navigate_command_history(Console *console, bool move_forward) {

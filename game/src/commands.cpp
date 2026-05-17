@@ -1,6 +1,7 @@
 #include "commands.h"
 
 #include "application.h"
+#include <stdlib.h> // For atoi().
 
 DynamicArray<CommandInfo> commands;
 
@@ -80,6 +81,16 @@ static void toggle_editor(ParseResult *result) {
 	push_command_simple(&g_app->game, CMD_TOGGLE_EDITOR_MODE);
 }
 
+static void reload_world(ParseResult *result) {
+	if (result->count != 1) {
+		push_log("ERROR ::  Received additional arguments for a command that does not have any parameters! Expected usage: reload_world", CONSOLE_LOG_ERROR);
+		return;
+	}
+
+	push_log("Reloading world from disk.", CONSOLE_LOG_OUTPUT);
+	push_command_simple(&g_app->game, CMD_RELOAD_WORLD);
+}
+
 // 
 // Console-related commands.
 //
@@ -111,6 +122,16 @@ static void request_help(ParseResult *result) {
 	}
 
 	String second = result->tokens[1];
+    if (string_comp(second, string_literal_create("commands"))) {
+        push_log("===== 'List of commands' =====", CONSOLE_LOG_INFO);
+        For (commands) {
+            // const char *command_name = string_to_cstr(it->name);
+            push_log(it->name, CONSOLE_LOG_INFO);
+        }
+		
+        push_log("=====================", CONSOLE_LOG_INFO);
+    }
+
 	if (string_comp(second, string_literal_create("console"))) {
 		push_log("===== 'console' =====", CONSOLE_LOG_INFO);
 		push_log("This command allows toggling the different states of the console within the console itself, which is kinda useless, but it is a command you can dispatch to!", CONSOLE_LOG_INFO);
@@ -121,24 +142,60 @@ static void request_help(ParseResult *result) {
 	}
 }
 
+static void do_add(ParseResult *result) {
+	if (result->count < 3) {
+		push_log("ERROR :: 'add' command expects atleast 2 arguments!", CONSOLE_LOG_ERROR);
+		return;
+	} else if (result->count > 3) {
+		push_log("ERROR :: 'add' command expects atmost 2 arguments!", CONSOLE_LOG_ERROR);
+		return;
+	}
+
+	// @TODO: This is SO MUCH JUST TO ADD 2 NUMBERS IN THE CONSOLE! Look to make this better.
+	StringBuilder sb = {};
+	Arena *scratch = get_current_arena_frame();
+	strbuild_append_string(scratch, &sb, result->tokens[1]);
+	const char *first = string_to_cstr(strbuild_terminate(scratch, &sb));
+	strbuild_reset(&sb);
+
+	strbuild_append_string(scratch, &sb, result->tokens[2]);
+	const char *second = string_to_cstr(strbuild_terminate(scratch, &sb));
+	strbuild_reset(&sb);
+
+	int num1 = atoi(first);
+	int num2 = atoi(second);
+	int total = num1 + num2;
+
+	strbuild_fmt(scratch, &sb, "%d", total);
+	String output = strbuild_terminate(scratch, &sb);
+	strbuild_reset(&sb);
+	
+	push_log(output, CONSOLE_LOG_OUTPUT); 
+}
+
 // ===== END OF COMMAND LIST. =====
 
 void init_commands() {
 	dynamic_array_init(&commands);
 	
+	// Game state stuff.
 	add_command("game_state", change_game_state);
 	add_command("reset_game", reset_game);
 	add_command("quit", quit_game);
 
+	// Developer related.
 	add_command("debug", toggle_debug);
 	add_command("console", toggle_console);
 	add_command("editor", toggle_editor);
+	add_command("reload_world", reload_world);
 
+	// Console related.
 	add_command("cls", clear_console_logs);
 	add_command("clear_history", clear_console_history);
 	add_command("help", request_help);
-	
+	add_command("add", do_add);
 }
+
 void cleanup_commands() {
 	dynamic_array_free(&commands);
 }
@@ -269,6 +326,9 @@ void process_command_list(Game *game) {
 			}
 			break;
 		}
+			
+		// @BUG: There is weird GameState bug here which causes us to flip between
+		// main menu and editor mode.
 		case CMD_TOGGLE_EDITOR_MODE: {
 			static GameState prev = game->state;
 			if (game->state != GAME_EDITOR) {
@@ -279,6 +339,10 @@ void process_command_list(Game *game) {
 				reset_camera(&session->camera, &session->world);
 				HideCursor();
 			}
+			break;
+		}
+		case CMD_RELOAD_WORLD: {
+			load_world(&game->session.world, game->session.world.arena);
 			break;
 		}
 

@@ -1,8 +1,7 @@
 #include "general.h"
-#include "raylib.h"
 
-#include <stdlib.h>
-#include <assert.h>
+#include "raylib.h"
+#include "platform.h"
 
 u32 truncate_u64_to_u32(u64 value) {
 	// @TODO: Create defines for maximum and minimum values.
@@ -37,14 +36,14 @@ void *arena_allocate(Arena *a, size_t size, size_t align) {
     return result;
 }
 
-// @TODO: Use platform-specific memory allocation to avoid calloc() overhead.
 void arena_init(Arena *a, size_t size) {
-	a->base = (u8 *)MemAlloc(size); // Raylib calls out to calloc() and zeroes it out.
-	memset(a->base, 0, size);       // Just in case.
+	a->base = (u8 *)platform_allocate(size);
 	assert(a->base);
-
+	
 	a->size = size;
 	a->used = 0;
+
+	printf("Arena initialized with %zu bytes.\n", size);
 }
 
 void arena_init_with_backing_memory(Arena *a, void *memory, size_t size) {
@@ -58,7 +57,7 @@ void arena_reset(Arena *a) {
 }
 
 void arena_free(Arena *a) {
-	MemFree(a->base);
+	platform_free(a->base, a->size);
 	a->base = nullptr;
 	a->size = 0;
 	a->used = 0;

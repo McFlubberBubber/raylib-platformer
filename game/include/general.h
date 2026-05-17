@@ -92,7 +92,7 @@ void array_unordered_remove(Array<T> *array, size_t index) {
 	assert(array);
 	assert(index < array->count);
 
-	array->data[index] = array->data[array->count - 1];
+	array->data[index] = array->data[array->count - 1]; // Put the last element in place.
 	array->count--;
 }
 
@@ -139,7 +139,7 @@ String string_slice(String str, u64 start, u64 end);
 String string_format(Arena *arena, const char *fmt, ...);
 bool   string_comp(String a, String b); // Should this return an integer instead?
 
-const char *string_to_cstr(String str);
+const char *string_to_cstr(String str); // @NOTE: This does NOT insert a null terminator itself.
 
 bool string_is_empty(String str);
 bool string_starts_with(String str, String prefix);
@@ -147,7 +147,7 @@ bool string_ends_with(String str, String suffix);
 s64  string_find_char(String str, char c);		   // Returns -1 if not found.
 s64  string_find_char_reverse(String str, char c); // Returns -1 if not found.
 
-String string_copy(Arena *arena, String str);
+String string_copy(Arena *arena, String str); // Inserts a null-terminator
 String string_copy_cstr(Arena *arena, const char *data);
 String string_trim(String str);
 String string_trim_left(String str);
@@ -181,7 +181,6 @@ Vector2 measure_text_ex_with_string(const Font *font, String str, float font_siz
 // file, therefore we should only be using this if we truly want dynamic array stuff since we
 // reallocate by 2.0x the capacity everytime we hit the threshold. As a result, only use this
 // structure if we know it's something we don't do often. 
-
 template <typename T>
 struct DynamicArray {
 	T *data;
@@ -225,5 +224,14 @@ void dynamic_array_free(DynamicArray<T> *arr) {
 	arr->count    = 0;
 	arr->capacity = 0;
 }
+
+// This macro can be used for the Array<T> and DynamicArray<T>, which implicitly makes an "it"
+// variable that can be used instead of array_get_at_index() within the loop. If you still want
+// to use an index, you should stick to the classic for loop like so:
+//
+//  for (int i = 0; i < array.count; ++i)
+//
+#define For(array) \
+        for (auto it = (array).data; it < (array).data + (array).count; ++it)
 
 #endif

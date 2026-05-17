@@ -91,5 +91,6 @@ void move_cursor_by_word(Console *console, bool move_forward);
 void navigate_command_history(Console *console, bool move_forward);
 
 void push_log(const char *message, ConsoleLogType type);
+void push_log(String message, ConsoleLogType type); // Expects null-terminated string.
 
 #endif

@@ -132,9 +132,14 @@ static void poll_editor_inputs(Application *app) {
 		cycle_editor_mode(editor, true);
 	}
 
+	// @TODO: We could just call a function here that handles all inputs for editor.
 	if (editor->mode == EDITOR_TILES) {
 		handle_tile_editor_input(&app->game);
 	}
+	if (editor->mode == EDITOR_SPIKES) {
+		handle_spike_editor_input(&app->game);
+	}
+	
 }
 
 

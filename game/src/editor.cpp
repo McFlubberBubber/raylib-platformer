@@ -28,26 +28,19 @@ static void draw_editor_ui(Game *game) {
 	StringBuilder sb = {};
 	strbuild_append_cstring(arena, &sb, "Editor Mode: ");
 	switch (session->editor.mode) {
-	case EDITOR_VIEW:  { strbuild_append_cstring(arena, &sb, "VIEW");  break; }
-	case EDITOR_TILES: { strbuild_append_cstring(arena, &sb, "TILES"); break; }
-	default:	       { strbuild_append_cstring(arena, &sb, "ERROR");        break; }
+	case EDITOR_VIEW:   { strbuild_append_cstring(arena, &sb, "VIEW");   break; }
+	case EDITOR_TILES:  { strbuild_append_cstring(arena, &sb, "TILES");  break; }
+	case EDITOR_SPIKES: { strbuild_append_cstring(arena, &sb, "SPIKES"); break; }
+	default:	        { strbuild_append_cstring(arena, &sb, "ERROR");  break; }
 	}
 	strbuild_terminate(arena, &sb);
 	pos.y -= font_size;
 	draw_text_ex_with_string(editor_font, sb.buffer, pos, font_size, spacing, WHITE);
 }
 
-static void draw_tile_editor_view(Game *game) {
+static void draw_screen_borders(Game *game) {
 	const GameSession *session = &game->session;
-	const float tile_size = session->world.tile_size;
-	const Vector2 snapped_pos = get_snapped_mouse_pos_in_world(session);
-
-	// Draw a preview of the tile the user is going to place / erase.
-	Rectangle tile_preview_rect = {snapped_pos.x, snapped_pos.y, (float)tile_size, (float)tile_size};
-	Color tile_preview_color = { 255, 255, 255, 100 };
-	DrawRectangleRec(tile_preview_rect, tile_preview_color);
-	DrawRectangleLinesEx(tile_preview_rect, 1.0f, WHITE);
-
+	
 	// Draw the borders to each screen for clarity.
 	float screen_pixel_width  = world_screen_pixel_width(&session->world);
 	float screen_pixel_height = world_screen_pixel_height(&session->world);
@@ -60,6 +53,34 @@ static void draw_tile_editor_view(Game *game) {
 			DrawRectangleLinesEx(screen_border_rect, 1.0f, GREEN);
 		}
 	}
+}
+
+static void draw_tile_editor_view(Game *game) {
+	const GameSession *session = &game->session;
+	const float tile_size = session->world.tile_size;
+	const Vector2 snapped_pos = get_snapped_mouse_pos_in_world(session);
+
+	// Draw a preview of the tile the user is going to place / erase.
+	Rectangle tile_preview_rect = {snapped_pos.x, snapped_pos.y, (float)tile_size, (float)tile_size};
+	Color tile_preview_color = { 255, 255, 255, 100 };
+	DrawRectangleRec(tile_preview_rect, tile_preview_color);
+	DrawRectangleLinesEx(tile_preview_rect, 1.0f, WHITE);
+}
+
+static void draw_spike_editor_view(Game *game) {
+	const GameSession *session = &game->session;
+	const Vector2 snapped_pos  = get_snapped_mouse_pos_in_world(session);
+
+	// Since tile_size is 32.0f;
+	const float tile_full = 32.0f;
+	const float tile_half = 16.0f;
+	Vector2 v1 = {snapped_pos.x + tile_full, snapped_pos.y + tile_full};
+	Vector2 v2 = {snapped_pos.x            , snapped_pos.y + tile_full};
+	Vector2 v3 = {snapped_pos.x + tile_half, snapped_pos.y            };
+
+	Color preview_color = { 255, 255, 255, 100 };
+	DrawTriangle(v1, v2, v3, preview_color);
+	DrawTriangleLines(v1, v2, v3, preview_color);
 }
 
 void draw_editor_view(Game *game) {
@@ -75,6 +96,11 @@ void draw_editor_view(Game *game) {
 
 	if (session->editor.mode == EDITOR_TILES) {
 		draw_tile_editor_view(game);
+		draw_screen_borders(game);
+	}
+	if (session->editor.mode == EDITOR_SPIKES) {
+		draw_spike_editor_view(game);
+		draw_screen_borders(game);
 	}
 
 	EndMode2D();
@@ -140,6 +166,53 @@ void handle_tile_editor_input(Game *game) {
 		}
 	}
 }
+
+void handle_spike_editor_input(Game *game) {
+	GameSession *session = &game->session;
+	World *world = &session->world;
+	const Vector2 snapped_pos = get_snapped_mouse_pos_in_world(session); 
+
+	// Fetch tile coordinates.
+	u32 out_screen, out_x, out_y;
+	world_pos_to_tile(world, snapped_pos, &out_screen, &out_x, &out_y);
+
+	// Ensure the current screen is valid.
+	Screen *screen = world_get_screen_from_pos(world, snapped_pos);
+	if (!screen) {
+		fprintf(stderr, "[EDITOR]: world_get_screen_from_pos() returned NULL!\n");
+		return;
+	}
+
+	// Fetch the tile_index and ensure it is also valid.
+	u32 screen_index = screen->grid_y * world->grid_width + screen->grid_x;
+	u32 tile_index   = get_tile_index(world, screen_index, out_x, out_y);
+	if (tile_index >= world->tiles.count) {
+		fprintf(stderr, "[EDITOR]: get_tile_index() returned an index outside the world tile count!\n");
+		return;
+	}
+
+	// Finally, place / erase the tile.
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+		world->tiles.data[tile_index].type = TILE_SPIKE;
+		printf("Placed spike at index: %u.\n", tile_index);
+	}
+	if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+		world->tiles.data[tile_index].type = TILE_EMPTY;
+		printf("Erased spike at index: %u.\n", tile_index);
+	}
+		
+	// Saving the world to disk.
+	if (IsKeyPressed(KEY_S) && IsKeyDown(KEY_LEFT_CONTROL)) {
+		bool saved = save_world(world);
+		if (saved) {
+			printf("[EDITOR]: World successfully saved.\n");
+		} else {
+			fprintf(stderr, "[EDITOR]: Failed to save world.\n");
+		}
+	}
+}
+
+
 
 Vector2 get_snapped_mouse_pos_in_world(const GameSession* session) {
 	const World *world = &session->world;

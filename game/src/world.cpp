@@ -1,6 +1,6 @@
 #include "world.h"
 
-#include "raymath.h" // For Lerp
+#include "raymath.h" // For Lerp and Vector math
 #include "application.h"
 
 bool save_world(const World *world) {
@@ -179,6 +179,10 @@ void update_world(World *world, Vector2 player_center) {
 
 void draw_world(const World *world, bool draw_all_screens) {
     const float line_thickness = 2.0f;
+	const float tile_size = world->tile_size; 
+	const float tile_half = tile_size*0.5f;
+	const float tile_quarter = tile_half*0.5f;
+
     u32 screen_start = 0;
     u32 screen_end   = 1;
 
@@ -200,17 +204,26 @@ void draw_world(const World *world, bool draw_all_screens) {
         for (u32 i = 0; i < count; ++i) {
             Tile *tile = &world->tiles.data[base + i];
             if (tile->type == TILE_EMPTY) continue;
-
-            Vector2   pos  = tile_index_to_world(world, si, i);
-            Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
-            Color     color = BLUE;
+            Vector2 pos = tile_index_to_world(world, si, i);
 
             switch (tile->type) {
-            case TILE_SOLID: { color = DARKGRAY; break; }
-            case TILE_SPIKE: { color = PURPLE;   break; }
-            }
+            case TILE_SOLID: {
+				Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
+				DrawRectangleLinesEx(rect, line_thickness, DARKGRAY);				
+			} break;
+				
+            case TILE_SPIKE: {
+				Vector2 v1 = {pos.x + tile_size, pos.y + tile_size}; // Bottom right.
+				Vector2 v2 = {pos.x            , pos.y + tile_size}; // Bottom left.
+				Vector2 v3 = {pos.x + tile_half, pos.y            }; // Top-middle.
 
-            DrawRectangleLinesEx(rect, line_thickness, color);
+				// DrawTriangle(v1, v2, v3, color);
+				
+				Rectangle hitbox_rect = {pos.x + tile_quarter, pos.y + tile_half, tile_half, tile_half};
+				DrawRectangleLinesEx(hitbox_rect, 1.0f, RED);
+				DrawTriangleLines(v1, v2, v3, PURPLE);
+			} break;
+            }
         }
     }
 }
@@ -256,6 +269,11 @@ void world_pos_to_tile(const World *world, Vector2 world_pos, u32 *out_screen, u
 	*out_y = (u32)Clamp((float)*out_y, 0.0f, (float)(world->screen_height_in_tiles  - 1));
 }
 
+static Vector2 get_tile_coords(const World *world, float world_x, float world_y) {
+	Vector2 result = {};
+	return result;
+}
+
 bool is_solid(const World *world, float world_x, float world_y) {
 	Screen *screen = world_get_screen_from_pos(world, {world_x, world_y});
     if (!screen) return true; // null or out of bounds = solid boundary
@@ -279,5 +297,26 @@ bool is_solid(const World *world, float world_x, float world_y) {
     if (tile_index >= world->tiles.count) return true;
 
     Tile *tile = &world->tiles.data[tile_index];
-    return (tile->type == TILE_SOLID || tile->type == TILE_SPIKE);
+    return (tile->type == TILE_SOLID);
+}
+
+bool is_spike(const World *world, float world_x, float world_y) {
+	Screen *screen = world_get_screen_from_pos(world, {world_x, world_y});
+	if (!screen) fprintf(stderr, "[IS_SPIKE] screen is NULL!\n");
+
+	float screen_pixel_width  = world_screen_pixel_width(world);
+	float screen_pixel_height = world_screen_pixel_height(world);
+
+    float local_x = world_x - (screen->grid_x * screen_pixel_width);
+    float local_y = world_y - (screen->grid_y * screen_pixel_height);
+
+    s32 tile_x = (s32)(local_x / world->tile_size);
+    s32 tile_y = (s32)(local_y / world->tile_size);
+	
+    u32 screen_index = screen->grid_y * world->grid_width + screen->grid_x;
+    u32 tile_index   = get_tile_index(world, screen_index, (u32)tile_x, (u32)tile_y);
+    if (tile_index >= world->tiles.count) return true;
+
+    Tile *tile = &world->tiles.data[tile_index];
+    return (tile->type == TILE_SOLID);
 }

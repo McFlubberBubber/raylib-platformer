@@ -22,6 +22,11 @@ int main() {
     dynamic_array_add(&numbers, 10);
     dynamic_array_add(&numbers, 69);
     dynamic_array_add(&numbers, 1337);
+    
+    For (numbers) {
+        auto number = *it;
+        printf("%d\n", number);
+    }
     */
 
 	init_app(&app);

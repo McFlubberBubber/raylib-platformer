@@ -13,17 +13,28 @@ static void check_horizontal_collisions(Player *player, World *world) {
     float bottom_inset = player->sprite.y + player->sprite.height - 0.1f;
 
     if (player->vel.x > 0) {
+		// Checking tile + spike collisions towards the right of the player.
         if (is_solid(world, right, top_inset) || is_solid(world, right, mid_y) ||
             is_solid(world, right, bottom_inset)) {
             player->sprite.x = floorf(right / tile_size) * tile_size - player->sprite.width;
             player->vel.x    = 0;
         }
+		if (is_spike(world, right, top_inset) || is_spike(world, right, mid_y) ||
+			is_spike(world, right, bottom_inset)) {
+			player->health = 0;
+		}
     } else if (player->vel.x < 0) {
+		// Doing the opposite here.
         if (is_solid(world, left, top_inset) || is_solid(world, left, mid_y) ||
             is_solid(world, left, bottom_inset)) {
             player->sprite.x = (floorf(left / tile_size) + 1.0f) * tile_size;
             player->vel.x    = 0;
         }
+
+		if (is_spike(world, left, top_inset) || is_spike(world, left, mid_y) ||
+			is_spike(world, left, bottom_inset)) {
+			player->health = 0;
+		}
     }
 }
 
@@ -42,6 +53,7 @@ static void check_vertical_collisions(Player *player, World *world) {
     float right_inset = player->sprite.x + player->sprite.width - inset;
 
     if (player->vel.y > 0) {
+		// Check tile + spike collisions underneath the player first.
         float check_bottom = bottom + 0.1f;
         if (is_solid(world, left_inset, check_bottom) || is_solid(world, mid_x, check_bottom) ||
             is_solid(world, right_inset, check_bottom)) {
@@ -49,15 +61,24 @@ static void check_vertical_collisions(Player *player, World *world) {
             player->vel.y       = 0;
             player->is_grounded = true;
         }
+        if (is_spike(world, left_inset, check_bottom) || is_spike(world, mid_x, check_bottom) ||
+            is_spike(world, right_inset, check_bottom)) {
+			player->health = 0;
+		}
     } else if (player->vel.y < 0) {
+		// Check tile + spike collisions on top of the player next.
         if (is_solid(world, left_inset, top) || is_solid(world, mid_x, top) ||
             is_solid(world, right_inset, top)) {
             player->sprite.y = (floorf(top / tile_size) + 1.0f) * tile_size;
             player->vel.y    = 0;
         }
+        if (is_spike(world, left_inset, top) || is_spike(world, mid_x, top) ||
+            is_spike(world, right_inset, top)) {
+			player->health = 0;
+		}
     }
 
-    if (!player->is_grounded) {
+    if (!player->is_grounded) { // If we are in the air..
         float probe       = bottom + 1.0f;
         float left_probe  = player->sprite.x + inset;
         float right_probe = player->sprite.x + player->sprite.width - inset;
@@ -66,8 +87,12 @@ static void check_vertical_collisions(Player *player, World *world) {
         bool left_hit  = is_solid(world, left_probe,  probe);
         bool mid_hit   = is_solid(world, mid_probe,   probe);
         bool right_hit = is_solid(world, right_probe, probe);
-
         if (left_hit || mid_hit || right_hit) player->is_grounded = true;
+
+        bool left_spike  = is_spike(world, left_probe,  probe);
+        bool mid_spike   = is_spike(world, mid_probe,   probe);
+        bool right_spike = is_spike(world, right_probe, probe);
+        if (left_spike || mid_spike || right_spike) player->health = 0;
     }
 }
 

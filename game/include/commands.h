@@ -32,6 +32,7 @@ enum CommandType {
 	CMD_TOGGLE_BIG_CONSOLE,
 	CMD_TOGGLE_EDITOR_MODE,
 	CMD_RELOAD_WORLD,
+	CMD_TOGGLE_GRID,
 
 	// Console-specific commands.
 	CMD_CLEAR_CONSOLE_LOGS,

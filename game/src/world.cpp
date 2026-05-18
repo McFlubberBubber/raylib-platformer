@@ -203,9 +203,10 @@ void draw_world(const World *world, bool draw_all_screens) {
 
         for (u32 i = 0; i < count; ++i) {
             Tile *tile = &world->tiles.data[base + i];
-            if (tile->type == TILE_EMPTY) continue;
-            Vector2 pos = tile_index_to_world(world, si, i);
-
+			if (!world->show_grid && tile->type == TILE_EMPTY) continue;
+//          if (tile->type == TILE_EMPTY) continue;
+   
+			Vector2 pos = tile_index_to_world(world, si, i);
             switch (tile->type) {
             case TILE_SOLID: {
 				Rectangle rect = { pos.x, pos.y, world->tile_size, world->tile_size };
@@ -224,6 +225,12 @@ void draw_world(const World *world, bool draw_all_screens) {
 				DrawTriangleLines(v1, v2, v3, PURPLE);
 			} break;
             }
+
+			if (world->show_grid) {
+				Rectangle grid = { pos.x, pos.y, world->tile_size, world->tile_size };
+				Color     grid_color = {0, 255, 0, 10};
+				DrawRectangleLinesEx(grid, line_thickness*0.5f, grid_color);
+			}
         }
     }
 }
@@ -300,7 +307,12 @@ bool is_solid(const World *world, float world_x, float world_y) {
     return (tile->type == TILE_SOLID);
 }
 
+// @TODO: This spike collision check looks into the whole tile as one hitbox, which does
+// NOT align with the hitbox_rect that we currently draw onto the scene. Therefore we gotta do
+// something different.
 bool is_spike(const World *world, float world_x, float world_y) {
+#if 0
+
 	Screen *screen = world_get_screen_from_pos(world, {world_x, world_y});
 	if (!screen) fprintf(stderr, "[IS_SPIKE] screen is NULL!\n");
 
@@ -318,5 +330,9 @@ bool is_spike(const World *world, float world_x, float world_y) {
     if (tile_index >= world->tiles.count) return true;
 
     Tile *tile = &world->tiles.data[tile_index];
-    return (tile->type == TILE_SOLID);
+    return (tile->type == TILE_SPIKE);
+
+#else
+	return false;
+#endif
 }

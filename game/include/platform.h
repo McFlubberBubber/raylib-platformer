@@ -5,7 +5,7 @@
 
 // This header file is the foundation for any platform-specific code that the
 // project may need. For example, the arenas implemented within the general.h
-// currently use Windows' VirtualAlloc().
+// currently use Windows' VirtualAlloc() and POSIX's mmap().
 //
 // The source code for each platform layer will be named accordingly. For example,
 // win32_platform.cpp, etc.

@@ -43,6 +43,8 @@ struct World {
 	// Grid coordinates, not pixel or tile.
 	s32 current_screen_x;
 	s32 current_screen_y;
+
+	bool show_grid = false; // @Temporary?
 };
 
 #pragma pack(push, 1)
@@ -104,6 +106,8 @@ Vector2 tile_index_to_world(const World *world, u32 screen_index, u32 tile_index
 // Converts pixel space to world coords.
 void world_pos_to_tile(const World *world, Vector2 world_pos, u32 *out_screen, u32 *out_x, u32 *out_y);
 
+
 bool is_solid(const World *world, float world_x, float world_y);
+bool is_spike(const World *world, float world_x, float world_y);
 
 #endif

@@ -91,6 +91,16 @@ static void reload_world(ParseResult *result) {
 	push_command_simple(&g_app->game, CMD_RELOAD_WORLD);
 }
 
+static void toggle_grid(ParseResult *result) {
+	if (result->count != 1) {
+		push_log("ERROR ::  Received additional arguments for a command that does not have any parameters! Expected usage: grid", CONSOLE_LOG_ERROR);
+		return;
+	}
+
+	push_log("Toggling grid lines.", CONSOLE_LOG_OUTPUT);
+	push_command_simple(&g_app->game, CMD_TOGGLE_GRID);
+}
+
 // 
 // Console-related commands.
 //
@@ -188,6 +198,7 @@ void init_commands() {
 	add_command("console", toggle_console);
 	add_command("editor", toggle_editor);
 	add_command("reload_world", reload_world);
+	add_command("grid", toggle_grid);
 
 	// Console related.
 	add_command("cls", clear_console_logs);
@@ -343,6 +354,10 @@ void process_command_list(Game *game) {
 		}
 		case CMD_RELOAD_WORLD: {
 			load_world(&game->session.world, game->session.world.arena);
+			break;
+		}
+		case CMD_TOGGLE_GRID: {
+			game->session.world.show_grid = !game->session.world.show_grid;
 			break;
 		}
 

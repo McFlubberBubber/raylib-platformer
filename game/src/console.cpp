@@ -65,7 +65,7 @@ static Array<String> wrap_text(String message, const float max_width) {
 	if (string_is_empty(message)) return lines;
 
 	const Font *font = get_font(FONT_CONSOLE);
-	const float font_size = 32.0f;
+	const float font_size = CONSOLE_FONT_SIZE;
 	const float font_spacing = 0.0f;
 
 //	StringBuilder sb = {};
@@ -181,11 +181,11 @@ static void draw_logs(Console* console) {
     // Then, draw the actual logs.
     const int log_padding = 6;
     const int log_count = console->log_buffer.log_count;
-    const int log_line_height = 36;
+    const int log_line_height = CONSOLE_FONT_SIZE + 2.0f;
 	const float max_text_width = log_width - (log_padding * 2);
 
     const Font *font      = get_font(FONT_CONSOLE);
-    const int   font_size = 32;
+    const int   font_size = CONSOLE_FONT_SIZE;
 
 	const int text_x    = log_x + log_padding;
     int       text_y    = log_y + log_height - font_size - log_padding;
@@ -218,13 +218,7 @@ static void draw_logs(Console* console) {
 			draw_text_ex_with_string(font, *line, pos, font_size, font_spacing, text_color);
 			text_y -= log_line_height;
 		}
-		
-		/*
-        const float spacing = 0.0f;
-        DrawTextEx(*font, text, pos, font_size, spacing, text_color);
-        text_y -= log_line_height;
-		*/
-    }
+	}
     EndScissorMode();
 }
 
@@ -241,11 +235,14 @@ static void draw_input_area(Console *console) {
 //	const Font *font         = get_font(FONT_CONSOLE_INPUT);
 //	const float font_size    = font->baseSize;
 	const Font *font         = get_font(FONT_CONSOLE);
-	const float font_size    = 40;
+	const float font_size    = CONSOLE_INPUT_FONT_SIZE;
 	const float font_spacing = 0.0f;
 
+	const float padding = 2;
+	
 	const char   *text            = console->input.data;
-	const Vector2 text_pos        = { (float)(input_x + 2), (float)(input_y + 6) };
+	const Vector2 text_pos        = {input_x + padding, input_y + padding};
+//	const Vector2 text_pos        = { (float)(input_x + 2), (float)(input_y + 6) };
 	const Vector2 text_dimensions = MeasureTextEx(*font, text, font_size, font_spacing);
 	const Color   text_color      = GREEN;
 
@@ -255,7 +252,7 @@ static void draw_input_area(Console *console) {
 	const Vector2 text_before_cursor_dimensions = MeasureTextEx(*font, text_before_cursor, font_size, font_spacing);
 
 	const float cursor_x        = text_pos.x + text_before_cursor_dimensions.x;
-	const float cursor_y        = input_y + 4;
+	const float cursor_y        = input_y + padding*0.5f;
 	const float cursor_width    = 4.0f;
 	const float cursor_height   = font_size;
 	const Rectangle cursor_rect = { cursor_x, cursor_y, cursor_width, cursor_height };
@@ -283,7 +280,8 @@ void init_console(Console *console) {
 																
 	// Input area initialization.
 	console->input.length = 0;
-	console->input.height = 48.0f;
+//	console->input.height = CONSOLE_FONT_SIZE * 2;
+	console->input.height = CONSOLE_INPUT_FONT_SIZE + 2;
 	
 	console->input.cursor_pos        = 0;
 	console->input.cursor_blink_time = 0.0f;

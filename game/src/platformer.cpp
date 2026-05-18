@@ -15,7 +15,7 @@ static void draw_debug_overlay(Game *game) {
 	Arena *arena = get_current_arena_frame();
 
 	const Font *font = get_font(FONT_CONSOLE);
-	const s32 font_size = 24;
+	const s32 font_size = DEFAULT_FONT_SIZE;
 	const s32 spacing   = 0;
 	const s32 text_x    = 0;
 	const s32 text_y    = 20;
@@ -132,7 +132,7 @@ static void draw_debug_overlay(Game *game) {
 }
 
 static void draw_ui(Game *game) {
-	const s32 font_size = 18;
+	const s32 font_size = static_cast<s32>(DEFAULT_FONT_SIZE * 0.5f);
 	const s32 center_x = g_app->game_width  / 2;
 	const s32 center_y = g_app->game_height / 2;
 	
@@ -178,6 +178,11 @@ void init_game_session(GameSession *session) {
 	}
 
 	init_player(&session->player, &session->world);
+
+	// @Temporary fix!!!
+	const Vector2 player_center = {session->player.sprite.x + session->player.sprite.width * 0.5f,session->player.sprite.y + session->player.sprite.height * 0.5f};
+	update_world(&session->world, player_center);
+
 	init_camera(&session->camera, &session->world);
 
 	session->editor.mode = EDITOR_VIEW;

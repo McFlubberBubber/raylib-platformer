@@ -4,8 +4,6 @@
 #include "world.h"
 
 static void check_horizontal_collisions(Player *player, World *world) {
-    const float tile_size = world->tile_size;
-
     float left         = player->sprite.x;
     float right        = player->sprite.x + player->sprite.width;
     float mid_y        = player->sprite.y + player->sprite.height * 0.5f;
@@ -16,18 +14,20 @@ static void check_horizontal_collisions(Player *player, World *world) {
 		// Checking tile + spike collisions towards the right of the player.
         if (is_solid(world, right, top_inset) || is_solid(world, right, mid_y) ||
             is_solid(world, right, bottom_inset)) {
-            player->sprite.x = floorf(right / tile_size) * tile_size - player->sprite.width;
+            player->sprite.x = floorf(right / TILE_SIZE) * TILE_SIZE - player->sprite.width;
             player->vel.x    = 0;
         }
+
 		if (is_spike(world, right, top_inset) || is_spike(world, right, mid_y) ||
 			is_spike(world, right, bottom_inset)) {
 			player->health = 0;
 		}
+
     } else if (player->vel.x < 0) {
 		// Doing the opposite here.
         if (is_solid(world, left, top_inset) || is_solid(world, left, mid_y) ||
             is_solid(world, left, bottom_inset)) {
-            player->sprite.x = (floorf(left / tile_size) + 1.0f) * tile_size;
+            player->sprite.x = (floorf(left / TILE_SIZE) + 1.0f) * TILE_SIZE;
             player->vel.x    = 0;
         }
 
@@ -41,14 +41,13 @@ static void check_horizontal_collisions(Player *player, World *world) {
 static void check_vertical_collisions(Player *player, World *world) {
     player->is_grounded = false;
 
-    const float tile_size = world->tile_size;
     float left   = player->sprite.x;
     float right  = player->sprite.x + player->sprite.width;
     float top    = player->sprite.y;
     float bottom = player->sprite.y + player->sprite.height;
     float mid_x  = player->sprite.x + player->sprite.width * 0.5f;
 
-    float inset       = tile_size * 0.1f;
+    float inset       = TILE_SIZE * 0.1f;
     float left_inset  = player->sprite.x + inset;
     float right_inset = player->sprite.x + player->sprite.width - inset;
 
@@ -57,7 +56,7 @@ static void check_vertical_collisions(Player *player, World *world) {
         float check_bottom = bottom + 0.1f;
         if (is_solid(world, left_inset, check_bottom) || is_solid(world, mid_x, check_bottom) ||
             is_solid(world, right_inset, check_bottom)) {
-            player->sprite.y    = floorf(bottom / tile_size) * tile_size - player->sprite.height;
+            player->sprite.y    = floorf(bottom / TILE_SIZE) * TILE_SIZE - player->sprite.height;
             player->vel.y       = 0;
             player->is_grounded = true;
         }
@@ -69,7 +68,7 @@ static void check_vertical_collisions(Player *player, World *world) {
 		// Check tile + spike collisions on top of the player next.
         if (is_solid(world, left_inset, top) || is_solid(world, mid_x, top) ||
             is_solid(world, right_inset, top)) {
-            player->sprite.y = (floorf(top / tile_size) + 1.0f) * tile_size;
+            player->sprite.y = (floorf(top / TILE_SIZE) + 1.0f) * TILE_SIZE;
             player->vel.y    = 0;
         }
         if (is_spike(world, left_inset, top) || is_spike(world, mid_x, top) ||
@@ -96,18 +95,26 @@ static void check_vertical_collisions(Player *player, World *world) {
     }
 }
 
-
-void init_player(Player *player, const World *world) {
+static void spawn_player_in_screen(Player *player, const World *world, const Screen *screen) {
+	assert(screen != nullptr);
+	assert(screen->is_valid);
+	
 	float screen_pixel_width  = world_screen_pixel_width(world);
 	float screen_pixel_height = world_screen_pixel_height(world);
 	
-	player->sprite.x = screen_pixel_width * 0.5f - (20 - 0.5f);
+	float screen_origin_x = screen->grid_x * screen_pixel_width;
+	float screen_origin_y = screen->grid_y * screen_pixel_height;
+
+	player->sprite.x = screen_origin_x + (screen_pixel_width*0.5f)  - (player->sprite.width*0.5f);
+	player->sprite.y = screen_origin_y + (screen_pixel_height*0.5f) - (player->sprite.height*0.5f); 
+	player->vel = {0.0f, 0.0f};
+}
+
+void init_player(Player *player, const World *world) {
+	player->sprite.x = 0;
 	player->sprite.y = 0;
 	player->sprite.width  = 20;
 	player->sprite.height = 20;
-
-	player->vel.x = 0.0f;
-	player->vel.y = 0.0f;
 
 	player->state	    = PLAYER_IDLE;
 	player->prev_state  = player->state;
@@ -115,6 +122,9 @@ void init_player(Player *player, const World *world) {
 	player->is_grounded = false;
 	player->coyote = 0.0f;
 	player->health = 3;
+
+	Screen *screen = world_get_screen(world, 4, 4);
+	spawn_player_in_screen(player, world, screen);
 }
 
 void update_player(Player *player, World *world, Input* input, float dt) {
@@ -154,7 +164,7 @@ void update_player(Player *player, World *world, Input* input, float dt) {
 
 	// Death by falling.
 	float world_pixel_height = world_screen_pixel_height(world) * world->grid_height;
-	if ((player->sprite.y + player->sprite.height) >= world_pixel_height + world->tile_size) {
+	if ((player->sprite.y + player->sprite.height) >= world_pixel_height + TILE_SIZE) {
         player->health = 0;
     }
 

@@ -3,13 +3,11 @@
 
 #include "raylib.h"
 #include "general.h"
+#include "constants.h"
 
 #include "platformer.h"
 #include "input.h"
 #include "assets.h"
-
-const u32 DESIRED_FPS = 144;
-const u32 SCRATCH_ARENA_SIZE = megabytes(2);
 
 struct Application;
 extern Application *g_app;
@@ -22,14 +20,6 @@ enum DisplayMode {
 	DISPLAY_MODE_COUNT
 };
 
-enum ResolutionType {
-	_1280x720_ = 0,
-	_1366x768_,
-	_1920x1080_,
-
-	RESOLUTION_COUNT
-};
-
 struct ScratchArenas {
 	Arena arenas[2];
 	int   current = 0;
@@ -37,18 +27,17 @@ struct ScratchArenas {
 
 struct Application {
 	const char *title = "Platformer";
-	ResolutionType res = _1280x720_;
-
 	DisplayMode display_mode = WINDOWED_MODE;
 
 	// Related to the actual window and monitor specs.
 	int monitor, monitor_width, monitor_height;
-	int width, height;
+	s32 width  = GAME_WIDTH * DEFAULT_WINDOW_SCALE;
+	s32 height = GAME_HEIGHT * DEFAULT_WINDOW_SCALE;
 
 	RenderTexture2D game_render_target;
 	Rectangle       game_viewport;
-	s32 game_width  = 1920;
-	s32 game_height = 1080;
+	s32 game_width  = GAME_WIDTH;
+	s32 game_height = GAME_HEIGHT;
 
 	int target_fps = DESIRED_FPS;
 	bool should_close;

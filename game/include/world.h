@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include "general.h"
+#include "constants.h"
 
 struct Player;
 
@@ -33,7 +34,6 @@ struct World {
 	u32 screen_width_in_tiles;
 	u32 screen_height_in_tiles;
 	u32 tiles_per_screen; 	 // Width * Height.
-	float tile_size = 32.0f; 
 
 	u32 grid_width;			 // In screens.
 	u32 grid_height;		 // In screens.
@@ -95,10 +95,10 @@ Screen *world_get_screen_from_pos(const World *world, Vector2 world_pos);
 
 // Pixel-space helpers, derived from tile dimensions
 inline float world_screen_pixel_width(const World *world) {
-    return world->screen_width_in_tiles * world->tile_size;
+    return world->screen_width_in_tiles * TILE_SIZE;
 }
 inline float world_screen_pixel_height(const World *world) {
-    return world->screen_height_in_tiles * world->tile_size;
+    return world->screen_height_in_tiles * TILE_SIZE;
 }
 
 // Returns pixel-space pos of a tile.

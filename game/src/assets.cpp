@@ -41,7 +41,7 @@ static void load_all_fonts(AssetManager *asset_manager, const char *base) {
 	snprintf(full_path, sizeof(full_path), "%s%s", base, consolas);
 
 //	asset_manager->fonts[FONT_CONSOLE]       = LoadFontEx(full_path, 32, NULL, 0);
-	asset_manager->fonts[FONT_CONSOLE]       = LoadFontEx(full_path, 100, NULL, 0);
+	asset_manager->fonts[FONT_CONSOLE]       = LoadFontEx(full_path, 64, NULL, 0);
 //  asset_manager->fonts[FONT_CONSOLE_INPUT] = LoadFontEx(full_path, 40, NULL, 0);
 #endif
 

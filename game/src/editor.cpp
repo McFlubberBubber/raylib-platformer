@@ -6,7 +6,7 @@
 static void draw_editor_ui(Game *game) {
 	const GameSession *session = &game->session;
 	const Font *editor_font = get_font(FONT_CONSOLE);
-	const s32 font_size = 24;
+	const s32 font_size = DEFAULT_FONT_SIZE;
 	const s32 spacing = 0;
 	const s32 buffer_size = 64;
 
@@ -40,28 +40,28 @@ static void draw_editor_ui(Game *game) {
 
 static void draw_screen_borders(Game *game) {
 	const GameSession *session = &game->session;
+	const float border_thickness = 3.0f;
 	
-	// Draw the borders to each screen for clarity.
 	float screen_pixel_width  = world_screen_pixel_width(&session->world);
 	float screen_pixel_height = world_screen_pixel_height(&session->world);
+
 	for (u32 gy = 0; gy < session->world.grid_height; ++gy) {
 		for (u32 gx = 0; gx < session->world.grid_width; ++gx) {
 			Screen *screen = world_get_screen(&session->world, (s32)gx, (s32)gy);
 			if (!screen) continue;
 
 			Rectangle screen_border_rect = {(gx * screen_pixel_width) , (gy * screen_pixel_height), screen_pixel_width, screen_pixel_height};
-			DrawRectangleLinesEx(screen_border_rect, 1.0f, GREEN);
+			DrawRectangleLinesEx(screen_border_rect, border_thickness, GREEN);
 		}
 	}
 }
 
 static void draw_tile_editor_view(Game *game) {
 	const GameSession *session = &game->session;
-	const float tile_size = session->world.tile_size;
 	const Vector2 snapped_pos = get_snapped_mouse_pos_in_world(session);
 
 	// Draw a preview of the tile the user is going to place / erase.
-	Rectangle tile_preview_rect = {snapped_pos.x, snapped_pos.y, (float)tile_size, (float)tile_size};
+	Rectangle tile_preview_rect = {snapped_pos.x, snapped_pos.y, TILE_SIZE, TILE_SIZE};
 	Color tile_preview_color = { 255, 255, 255, 100 };
 	DrawRectangleRec(tile_preview_rect, tile_preview_color);
 	DrawRectangleLinesEx(tile_preview_rect, 1.0f, WHITE);
@@ -71,9 +71,8 @@ static void draw_spike_editor_view(Game *game) {
 	const GameSession *session = &game->session;
 	const Vector2 snapped_pos  = get_snapped_mouse_pos_in_world(session);
 
-	// Since tile_size is 32.0f;
-	const float tile_full = 32.0f;
-	const float tile_half = 16.0f;
+	const float tile_full = TILE_SIZE;
+	const float tile_half = tile_full*0.5f;
 	Vector2 v1 = {snapped_pos.x + tile_full, snapped_pos.y + tile_full};
 	Vector2 v2 = {snapped_pos.x            , snapped_pos.y + tile_full};
 	Vector2 v3 = {snapped_pos.x + tile_half, snapped_pos.y            };
@@ -216,7 +215,6 @@ void handle_spike_editor_input(Game *game) {
 
 Vector2 get_snapped_mouse_pos_in_world(const GameSession* session) {
 	const World *world = &session->world;
-	const float tile_size = world->tile_size;
 
 	// First, start with mouse position in window-space.
 	const Vector2 mouse_pos = GetMousePosition();
@@ -231,7 +229,7 @@ Vector2 get_snapped_mouse_pos_in_world(const GameSession* session) {
 	
 	// Snap the mouse_pos_in_world according to grid.
 	Vector2 result;
-	result.x = floorf(mouse_pos_in_world.x / tile_size) * tile_size;
-	result.y = floorf(mouse_pos_in_world.y / tile_size) * tile_size;
+	result.x = floorf(mouse_pos_in_world.x / TILE_SIZE) * TILE_SIZE;
+	result.y = floorf(mouse_pos_in_world.y / TILE_SIZE) * TILE_SIZE;
 	return result;
 }

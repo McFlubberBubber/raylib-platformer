@@ -32,30 +32,6 @@ void init_app(Application *app) {
 	arena_init(&app->scratch.arenas[0], SCRATCH_ARENA_SIZE);
 	arena_init(&app->scratch.arenas[1], SCRATCH_ARENA_SIZE);
 
-	// Setting window size based on user preference (should be loaded from a config eventually).
-	switch (app->res) {
-	case _1280x720_: {
-		app->width  = 1280;
-		app->height = 720;
-		break;
-	}
-	case _1366x768_: {
-		app->width  = 1366;
-		app->height = 768;
-		break;
-	}
-	case _1920x1080_: {
-		app->width  = 1920;
-		app->height = 1080;
-		break;
-	}
-	default: {
-		app->width  = 1280;
-		app->height = 720;
-		break;
-	}
-	}
-	
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
 	InitWindow(app->width, app->height, app->title);
 	app->monitor = GetCurrentMonitor();

@@ -8,14 +8,14 @@ void init_camera(Camera_2D *camera, const World *world) {
 	float screen_pixel_width = world_screen_pixel_width(world);
 	float screen_pixel_height = world_screen_pixel_height(world);
 
-	// Start centered at 0, 0 on the grid.
-	camera->raylib_cam.target.x = screen_pixel_width * 0.5f;
-	camera->raylib_cam.target.y = screen_pixel_height * 0.5f;
+	float start_x = (world->current_screen_x * screen_pixel_width)  + screen_pixel_width * 0.5f;
+	float start_y = (world->current_screen_y * screen_pixel_height) + screen_pixel_height * 0.5f;
+
+	camera->raylib_cam.target = {start_x, start_y};
 	camera->raylib_cam.offset   = {g_app->game_width * 0.5f, g_app->game_height * 0.5f};
 	camera->raylib_cam.rotation = 0;
 
 	camera->raylib_cam.zoom = 1.0f;
-//	camera->raylib_cam.zoom = 1.5f;
 
 	camera->is_transitioning = false;
 	camera->target_world_pos = camera->raylib_cam.target;

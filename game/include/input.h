@@ -17,6 +17,7 @@ struct Input {
 	// Camera inputs.
 	Vector2 camera_movement = {};
 	float   camera_zoom = 0.0f;
+	bool    do_camera_sprint = false;    
 };
 
 void poll_inputs(Application *app);

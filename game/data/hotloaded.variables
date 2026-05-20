@@ -1,0 +1,17 @@
+# This is a comment!
+
+:/Display
+fullscreen = true		
+vsync = true
+
+
+:/Audio
+master_volume = 1.0
+
+:/Dev
+debug = false
+
+console_openness_dt = 0.5
+console_font_size   = 18.0					  
+
+# This is the end of the file!

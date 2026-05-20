@@ -157,6 +157,18 @@ s32	   string_split_whitespace(String str, String *out, s32 max_tokens); // Retu
 // The resulting string point to read-only memory, so don't write to it!
 #define string_literal_create(s) String{(char *)(s), sizeof(s) - 1}
 
+// We could just print out out Strings to printf and stuff like normally IF we guaranteed the
+// null terminator is in place, which kinda defeats the whole purpose of not dealing with it.
+// Therefore, if we want to print our length-based String into a printf(), we can use the following
+// macros to correctly print out the data of our string based on the length that is already stored
+// within the data structure. Below is an example of the usage:
+//
+//      String str = string_literal_create("Hello!");
+//      printf("This is our string: " string_fmt ".\n", string_arg(str));
+//
+#define string_fmt "%.*s"
+#define string_arg(string) (s32)(string).length, (string).data
+
 // This StringBuilder would break if we called arena_allocate() in between each append.
 // Therefore, we must finish all appends with the StringBuilder before doing any more arena
 // allocations, or else the memory will not be contigious!

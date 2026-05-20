@@ -241,6 +241,7 @@ void draw_world(const World *world, bool draw_all_screens) {
 			} break;
             }
 
+            // @TODO: This draws so much stuff that the FPS TANKS. Probably should figure a better way to represent this?
 			if (world->show_grid) {
 				Rectangle grid = { pos.x, pos.y, TILE_SIZE, TILE_SIZE };
 				Color     grid_color = {0, 255, 0, 10};

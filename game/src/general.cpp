@@ -184,7 +184,7 @@ s64 string_find_char(String str, char c) {
 
 s64 string_find_char_reverse(String str, char c) {
 	for (u64 i = str.length; i > 0; --i) {
-		if (str.data[i - 1] == c) return (s64)i;
+		if (str.data[i - 1] == c) return (s64)(i - 1);
 	}
 	return -1;
 }
@@ -217,7 +217,7 @@ String string_trim_left(String s) {
 }
 
 String string_trim_right(String s) {
-    while (s.length > 0 && (s.data[s.length - 1] == ' ' || s.data[s.length - 1] == '\t')) {
+    while (s.length > 0 && (s.data[s.length - 1] == ' ' || s.data[s.length - 1] == '\t')) {\
         s.length--;
     }
     return s;

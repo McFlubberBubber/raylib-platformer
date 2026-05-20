@@ -31,6 +31,9 @@ void init_app(Application *app) {
 
 	arena_init(&app->scratch.arenas[0], SCRATCH_ARENA_SIZE);
 	arena_init(&app->scratch.arenas[1], SCRATCH_ARENA_SIZE);
+	arena_init(&app->permanent_arena, PERMANENT_ARENA_SIZE);
+
+	init_vars(&app->hotloaded_variables);
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
 	InitWindow(app->width, app->height, app->title);
@@ -90,6 +93,7 @@ void update_app(Application *app) {
 		calculate_game_viewport(app);
 	}
 
+	update_vars(&app->hotloaded_variables);
 	update_game(&app->game, &app->input, app->dt);
 }
 
@@ -124,10 +128,12 @@ void shutdown_app(Application *app) {
 	
 	arena_free(&app->scratch.arenas[0]);
 	arena_free(&app->scratch.arenas[1]);
+	arena_free(&app->permanent_arena);
 	
 	g_app = nullptr;
 	g_asset_manager = nullptr;
-	
+	hotloaded_vars = nullptr;
+
 	CloseWindow();
 }
 

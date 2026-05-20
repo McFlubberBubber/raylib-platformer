@@ -49,20 +49,20 @@ void update_camera(Camera_2D *camera, const World *world, Vector2 player_center,
 		}
 	}
 
-	//
 	// Editor Camera Movements
-	//
 	if (input->camera_movement.x != 0.0f || input->camera_movement.y != 0.0f) {
-		const float pan_speed = 5.0f;
-		camera->raylib_cam.target.x += input->camera_movement.x * pan_speed;
-		camera->raylib_cam.target.y += input->camera_movement.y * pan_speed;
+		if (!input->do_camera_sprint) {
+			camera->raylib_cam.target.x += input->camera_movement.x * EDITOR_PAN_SPEED;
+			camera->raylib_cam.target.y += input->camera_movement.y * EDITOR_PAN_SPEED;
+		} else {
+			camera->raylib_cam.target.x += input->camera_movement.x * EDITOR_FAST_PAN_SPEED;
+			camera->raylib_cam.target.y += input->camera_movement.y * EDITOR_FAST_PAN_SPEED;
+		}
 	}
 
-	// 
 	// Editor Zoom
-	//
 	if (input->camera_zoom != 0.0f) {
-		camera->raylib_cam.zoom += input->camera_zoom * 0.25f;
+		camera->raylib_cam.zoom += input->camera_zoom * 0.05f;
 		if (camera->raylib_cam.zoom > 10.0f) camera->raylib_cam.zoom = 10.0f;
 		if (camera->raylib_cam.zoom < 0.1f)  camera->raylib_cam.zoom = 0.1f;
 	}

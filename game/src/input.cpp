@@ -108,9 +108,10 @@ static void poll_editor_inputs(Application *app) {
 	Editor *editor = &app->game.session.editor;
 
 	Input *input = &app->input;
-	input->camera_movement = { 0.0f, 0.0f };
-	input->camera_zoom     = GetMouseWheelMove();
-
+	input->camera_movement  = { 0.0f, 0.0f };
+	input->camera_zoom      = GetMouseWheelMove();
+	input->do_camera_sprint = false;
+	
 	// Keyboard inputs.
 	if (IsKeyDown(KEY_A)) {
 		input->camera_movement.x = -1.0f;
@@ -123,6 +124,9 @@ static void poll_editor_inputs(Application *app) {
 	}
 	if (IsKeyDown(KEY_S) && !IsKeyDown(KEY_LEFT_CONTROL)) { // This is because ctrl+s is save_world().
 		input->camera_movement.y =  1.0f;
+	}
+	if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)) {
+		input->do_camera_sprint = true;
 	}
 
 	if (IsKeyPressed(KEY_LEFT)) {

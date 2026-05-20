@@ -211,8 +211,6 @@ void handle_spike_editor_input(Game *game) {
 	}
 }
 
-
-
 Vector2 get_snapped_mouse_pos_in_world(const GameSession* session) {
 	const World *world = &session->world;
 

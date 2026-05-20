@@ -8,6 +8,7 @@
 #include "platformer.h"
 #include "input.h"
 #include "assets.h"
+#include "vars.h"
 
 struct Application;
 extern Application *g_app;
@@ -45,8 +46,10 @@ struct Application {
 	Game game;
 	Input input;
 	AssetManager asset_manager;
+	HotloadedVariables hotloaded_variables;
 
 	ScratchArenas scratch;
+	Arena permanent_arena;
 
 	float dt; // Delta time.
 };
@@ -62,6 +65,9 @@ inline Arena *get_current_arena_frame() {
 }
 inline Arena *get_prev_arena_frame() {
 	return &g_app->scratch.arenas[1 - g_app->scratch.current];
+}
+inline Arena *get_permanent_arena() {
+	return &g_app->permanent_arena;
 }
 void flip_scratch_arenas(Application *app);
 #endif

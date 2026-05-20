@@ -19,9 +19,12 @@ inline static void clear_input_area(Console *console) {
 
 static void update_openness(Console *console, float dt) {
 	// Openness relates to the actual pixels in y.
+	
 	const int SMALL_OPENNESS_TARGET = (int)(g_app->game_height * 0.4f);
 	const int BIG_OPENNESS_TARGET   = (int)(g_app->game_height * 0.95f);
-	const float OPENNESS_DT         = 0.5f;
+	
+	// const float OPENNESS_DT         = 0.5f;
+	const float OPENNESS_DT = hotloaded_vars->dev.console_openness_dt;
 	
 	int target_openness = 0;
 	
@@ -65,7 +68,8 @@ static Array<String> wrap_text(String message, const float max_width) {
 	if (string_is_empty(message)) return lines;
 
 	const Font *font = get_font(FONT_CONSOLE);
-	const float font_size = CONSOLE_FONT_SIZE;
+	// const float font_size = CONSOLE_FONT_SIZE;
+	const float font_size = hotloaded_vars->dev.console_font_size;
 	const float font_spacing = 0.0f;
 
 //	StringBuilder sb = {};
@@ -181,12 +185,14 @@ static void draw_logs(Console* console) {
     // Then, draw the actual logs.
     const int log_padding = 6;
     const int log_count = console->log_buffer.log_count;
-    const int log_line_height = CONSOLE_FONT_SIZE + 2.0f;
+	// const int log_line_height = CONSOLE_FONT_SIZE + 2.0f;
+	const int log_line_height = hotloaded_vars->dev.console_font_size + 2.0f;
 	const float max_text_width = log_width - (log_padding * 2);
 
     const Font *font      = get_font(FONT_CONSOLE);
-    const int   font_size = CONSOLE_FONT_SIZE;
-
+    // const int   font_size = CONSOLE_FONT_SIZE;
+	const int   font_size = hotloaded_vars->dev.console_font_size;
+	
 	const int text_x    = log_x + log_padding;
     int       text_y    = log_y + log_height - font_size - log_padding;
     Color     text_color;

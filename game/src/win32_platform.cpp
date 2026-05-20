@@ -18,3 +18,13 @@ void platform_free(void *ptr, size_t size) {
 	(void)size;
 	VirtualFree(ptr, 0, MEM_RELEASE);
 }
+
+FileTimestamp platform_get_file_timestamp(const char *path) {
+	WIN32_FILE_ATTRIBUTE_DATA data;
+	if (!GetFileAttributesExA(path, GetFileExInfoStandard, &data)) {
+		return 0;
+	}
+
+	FileTimestamp result = ((uint64_t)data.ftLastWriteTime.dwHighDateTime << 32) | (uint64_t)data.ftLastWriteTime.dwLowDateTime;
+	return result;
+}

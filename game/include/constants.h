@@ -14,7 +14,14 @@
 #include "general.h"
 
 constexpr u32 DESIRED_FPS = 144;
-constexpr u32 SCRATCH_ARENA_SIZE = megabytes(2);
+constexpr u32 SCRATCH_ARENA_SIZE = megabytes(1);
+
+// @TODO: Make this permanent arena include the console + world arena in the future. This is
+// currently here only for hotloaded_vars bindings.
+constexpr u32 PERMANENT_ARENA_SIZE = megabytes(2);
+constexpr u32 MAX_VAR_BINDINGS     = 64;
+
+constexpr u32 VARS_LINE_BUFFER_SIZE = 512;
 
 constexpr u32 TILE_SIZE = 32;
 constexpr u32 TILE_HALF = static_cast<u32>(TILE_SIZE * 0.5f);
@@ -31,7 +38,9 @@ constexpr u32 GAME_HEIGHT = TILE_SIZE * TILES_PER_ROW;
 constexpr u32 DEFAULT_WINDOW_SCALE = 1;
 
 constexpr s32 DEFAULT_FONT_SIZE = 16.0f;
-constexpr s32 CONSOLE_FONT_SIZE = 24.0f;
+// constexpr s32 CONSOLE_FONT_SIZE = 24.0f; // Moved to vars.
 constexpr s32 CONSOLE_INPUT_FONT_SIZE = 32.0f; 
 
+constexpr float EDITOR_PAN_SPEED = 5.0f;
+constexpr float EDITOR_FAST_PAN_SPEED = 7.5f;
 #endif

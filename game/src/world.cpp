@@ -5,10 +5,8 @@
 
 bool save_world(const World *world) {
 	char full_path[128];
-	const char *app_dir    = GetApplicationDirectory();
-	const char *world_path = "data/world/level_01.wld";
-	
-	snprintf(full_path, sizeof(full_path), "%s%s", app_dir, world_path); 
+	const char *world_path = "world/level_01.wld";
+	snprintf(full_path, sizeof(full_path), "%s%s", get_data_path(), world_path); 
 
 	FILE *file = fopen(full_path, "wb");
 	if (!file) {
@@ -43,10 +41,8 @@ bool save_world(const World *world) {
 
 bool load_world(World *world, Arena *arena) {
 	char full_path[128];
-	const char *app_dir    = GetApplicationDirectory();
-	const char *world_path = "data/world/level_01.wld";
-	
-	snprintf(full_path, sizeof(full_path), "%s%s", app_dir, world_path); 
+	const char *world_path = "world/level_01.wld";
+	snprintf(full_path, sizeof(full_path), "%s%s", get_data_path(), world_path); 
 
 	FILE *file = fopen(full_path, "rb");
 	if (!file) {

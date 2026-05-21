@@ -1,13 +1,14 @@
 #include "assets.h"
 
-#include "iostream"
+// #include "iostream"
+#include "application.h"
 
 AssetManager *g_asset_manager = nullptr;
 
 static void load_all_sounds(AssetManager *asset_manager, const char *base) {
-	char full_path[256];
+	char full_path[128];
 	const char *paths[] = {
-		"data/audio/player_jump.wav",
+		"audio/player_jump.wav",
 	};
 
 	for (int i = 0; i < SOUND_COUNT; ++i) {
@@ -21,11 +22,11 @@ static void load_all_sounds(AssetManager *asset_manager, const char *base) {
 }
 
 static void load_all_fonts(AssetManager *asset_manager, const char *base) {
-	char full_path[256];
+	char full_path[128];
 
 #if 0 
 	const char *paths[] = {
-		"data/fonts/Consolas-Regular.ttf",
+		"fonts/Consolas-Regular.ttf",
 	};
 
 	for (int i = 0; i < FONT_COUNT; ++i) {
@@ -37,7 +38,7 @@ static void load_all_fonts(AssetManager *asset_manager, const char *base) {
 		}
 	}
 #else
-	const char *consolas = "data/fonts/Consolas-Regular.ttf";
+	const char *consolas = "fonts/Consolas-Regular.ttf";
 	snprintf(full_path, sizeof(full_path), "%s%s", base, consolas);
 
 //	asset_manager->fonts[FONT_CONSOLE]       = LoadFontEx(full_path, 32, NULL, 0);
@@ -50,7 +51,9 @@ static void load_all_fonts(AssetManager *asset_manager, const char *base) {
 void load_all_assets(AssetManager *asset_manager) {
 	InitAudioDevice();
 
-	const char *base = GetApplicationDirectory();
+	// const char *base = GetApplicationDirectory();
+	const char *base = get_data_path();
+
 	// load_all_textures(asset_manager, base);
 	load_all_sounds(asset_manager, base);
 	load_all_fonts(asset_manager, base);

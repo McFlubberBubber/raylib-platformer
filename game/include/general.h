@@ -188,7 +188,6 @@ void   strbuild_reset(StringBuilder *sb);
 void draw_text_ex_with_string(const Font *font, String str, Vector2 pos, s32 font_size, s32 spacing, Color color);
 Vector2 measure_text_ex_with_string(const Font *font, String str, float font_size, float font_spacing);
 
-
 // So this OTHER Array type you see here is NOT arena-backed like most other things in this
 // file, therefore we should only be using this if we truly want dynamic array stuff since we
 // reallocate by 2.0x the capacity everytime we hit the threshold. As a result, only use this

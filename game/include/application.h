@@ -28,6 +28,7 @@ struct ScratchArenas {
 
 struct Application {
 	const char *title = "Platformer";
+	const char *data_path;
 	DisplayMode display_mode = WINDOWED_MODE;
 
 	// Related to the actual window and monitor specs.
@@ -69,5 +70,9 @@ inline Arena *get_prev_arena_frame() {
 inline Arena *get_permanent_arena() {
 	return &g_app->permanent_arena;
 }
+inline const char *get_data_path() {
+	return g_app->data_path;
+}
+
 void flip_scratch_arenas(Application *app);
 #endif

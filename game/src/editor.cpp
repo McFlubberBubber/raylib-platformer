@@ -133,7 +133,7 @@ void handle_tile_editor_input(Game *game) {
 	// Ensure the current screen is valid.
 	Screen *screen = world_get_screen_from_pos(world, snapped_pos);
 	if (!screen) {
-		fprintf(stderr, "[EDITOR]: world_get_screen_from_pos() returned NULL!\n");
+		// fprintf(stderr, "[EDITOR]: world_get_screen_from_pos() returned NULL!\n");
 		return;
 	}
 
@@ -141,7 +141,7 @@ void handle_tile_editor_input(Game *game) {
 	u32 screen_index = screen->grid_y * world->grid_width + screen->grid_x;
 	u32 tile_index   = get_tile_index(world, screen_index, out_x, out_y);
 	if (tile_index >= world->tiles.count) {
-		fprintf(stderr, "[EDITOR]: get_tile_index() returned an index outside the world tile count!\n");
+		// fprintf(stderr, "[EDITOR]: get_tile_index() returned an index outside the world tile count!\n");
 		return;
 	}
 
@@ -160,6 +160,7 @@ void handle_tile_editor_input(Game *game) {
 		bool saved = save_world(world);
 		if (saved) {
 			printf("[EDITOR]: World successfully saved.\n");
+			push_log("[Editor]: World successfully saved.", CONSOLE_LOG_OUTPUT);
 		} else {
 			fprintf(stderr, "[EDITOR]: Failed to save world.\n");
 		}
@@ -186,7 +187,7 @@ void handle_spike_editor_input(Game *game) {
 	u32 screen_index = screen->grid_y * world->grid_width + screen->grid_x;
 	u32 tile_index   = get_tile_index(world, screen_index, out_x, out_y);
 	if (tile_index >= world->tiles.count) {
-		fprintf(stderr, "[EDITOR]: get_tile_index() returned an index outside the world tile count!\n");
+		// fprintf(stderr, "[EDITOR]: get_tile_index() returned an index outside the world tile count!\n");
 		return;
 	}
 
@@ -205,6 +206,7 @@ void handle_spike_editor_input(Game *game) {
 		bool saved = save_world(world);
 		if (saved) {
 			printf("[EDITOR]: World successfully saved.\n");
+			push_log("[Editor]: World successfully saved.", CONSOLE_LOG_OUTPUT);
 		} else {
 			fprintf(stderr, "[EDITOR]: Failed to save world.\n");
 		}

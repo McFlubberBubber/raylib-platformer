@@ -77,8 +77,8 @@ void init_vars(HotloadedVariables *hv) {
 	Attach("Dev", "console_font_size",   hv->dev.console_font_size,   VAR_TYPE_FLOAT32);
 
 	StringBuilder sb = {};
-	strbuild_append_cstring(arena, &sb, GetApplicationDirectory());
-	strbuild_append_cstring(arena, &sb, "data/hotloaded.variables");
+	strbuild_append_cstring(arena, &sb, get_data_path());
+	strbuild_append_cstring(arena, &sb, "hotloaded.variables");
 	hv->path = strbuild_terminate(arena, &sb);
 
     reload_vars(hv);

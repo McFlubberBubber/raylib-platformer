@@ -12,6 +12,7 @@
 // that I could carry over to other projects, so I dumped them here!
 
 #include "general.h"
+#include "raylib.h"
 
 constexpr u32 DESIRED_FPS = 144;
 constexpr u32 SCRATCH_ARENA_SIZE = megabytes(1);
@@ -43,4 +44,5 @@ constexpr s32 CONSOLE_INPUT_FONT_SIZE = 32.0f;
 
 constexpr float EDITOR_PAN_SPEED = 5.0f;
 constexpr float EDITOR_FAST_PAN_SPEED = 7.5f;
+
 #endif

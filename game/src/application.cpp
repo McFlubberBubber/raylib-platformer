@@ -33,6 +33,15 @@ void init_app(Application *app) {
 	arena_init(&app->scratch.arenas[1], SCRATCH_ARENA_SIZE);
 	arena_init(&app->permanent_arena, PERMANENT_ARENA_SIZE);
 
+#ifdef GAME_DATA_PATH
+	app->data_path = GAME_DATA_PATH;
+#else
+	StringBuilder sb = {};
+	strbuild_append_cstring(&app->permanent_arena, &sb, GetApplicationDirectory());
+	strbuild_append_cstring(&app->permanent_arena, &sb, "data/");
+	app->data_path = string_to_cstr(strbuild_terminate(&app->permanent_arena, &sb));
+#endif
+
 	init_vars(&app->hotloaded_variables);
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);

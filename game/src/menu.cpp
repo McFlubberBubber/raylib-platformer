@@ -95,11 +95,12 @@ static void do_controls_page_activations(Menu *menu) {
 }
 
 static void draw_opening_main_page(Menu *menu) {
-	const s32 game_width  = g_app->game_width;
-	const s32 game_height = g_app->game_height;
-	const s32 center_x = (s32)(game_width  * 0.5f);
-	const s32 center_y = (s32)(game_height * 0.5f);
+//	const s32 game_width  = g_app->game_width;
+//	const s32 game_height = g_app->game_height;
+//	const s32 center_x = (s32)(game_width  * 0.5f);
+//	const s32 center_y = (s32)(game_height * 0.5f);
 
+	const Vector2 screen_center = get_screen_center();
 	const float spacing = 0;
 
 	// Drawing the main title of the game (still in placeholder).
@@ -107,7 +108,7 @@ static void draw_opening_main_page(Menu *menu) {
 	const s32     title_size = menu->font_size * 2;
 	const Vector2 title_dim  = MeasureTextEx(*menu->font, title, title_size, spacing);
 
-	Vector2 title_pos = {center_x - (title_dim.x * 0.5f), center_y * 0.3f};
+	Vector2 title_pos = {screen_center.x - (title_dim.x * 0.5f), screen_center.y * 0.3f};
 	Color color = RAYWHITE;
 	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, color);
 
@@ -117,7 +118,7 @@ static void draw_opening_main_page(Menu *menu) {
 	Rectangle button_rect;
 	button_rect.width  = 400;
 	button_rect.height = 50;
-	button_rect.x = center_x - (button_rect.width * 0.5f);
+	button_rect.x = screen_center.x - (button_rect.width * 0.5f);
 
 	const Color text_color = BLACK;
 
@@ -132,7 +133,7 @@ static void draw_opening_main_page(Menu *menu) {
 */
 
 		Vector2 current_button_text_dim = MeasureTextEx(*menu->font, button_text[i], menu->font_size, spacing);
-		Vector2 button_text_pos = {center_x - (current_button_text_dim.x * 0.5f), button_rect.y + 10};
+		Vector2 button_text_pos = {screen_center.x - (current_button_text_dim.x * 0.5f), button_rect.y + 10};
 
 		DrawRectangleRec(button_rect, button_color);
 		if (menu->current_main_item == i) {
@@ -151,40 +152,45 @@ static void draw_opening_main_page(Menu *menu) {
 
 	const char   *credits = "Created by McFlubberBubber";
 	const Vector2 credits_text_dim = MeasureTextEx(*menu->font, credits, menu->font_size, spacing);
-	const Vector2 credits_pos = {center_x - (credits_text_dim.x * 0.5f), game_height - menu->font_size};
+	const Vector2 credits_pos = {screen_center.x - (credits_text_dim.x * 0.5f), g_app->game_height - menu->font_size};
 	const Color   credits_color = GRAY;
-	
+
 	DrawTextEx(*menu->font, credits, credits_pos, menu->font_size, spacing, credits_color);
 }
 
 static void draw_paused_menu(Menu *menu) {
 	// Application *app = Application::instance;
-	const int game_width  = g_app->game_width;
-	const int game_height = g_app->game_height;
-	
-	const char *title   = "PAUSED";
-	const int font_size = 40;
-	int text_width      = MeasureText(title, font_size);
-	int center_x        = (int)(game_width  / 2); 
-	int starting_y      = (int)(game_height * 0.2f);
-	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
+	// const int game_width  = g_app->game_width;
+	// const int game_height = g_app->game_height;
+	const Vector2 screen_center = get_screen_center();
+	const float spacing = 0;
+
+	const char   *title      = "PAUSED";
+	const s32     title_size = (s32)(menu->font_size * 1.5f);
+	const Vector2 title_dim  = MeasureTextEx(*menu->font, title, title_size, spacing);
+
+	Vector2 pos  = {screen_center.x - (title_dim.x * 0.5f), g_app->game_height * 0.2f};
+	DrawTextEx(*menu->font, title, pos, title_size, spacing, WHITE);
 
 	// Drawing the menu options
 	const char *button_text[] = { "RESUME", "SETTINGS", "CONTROLS", "BACK TO MAIN MENU" };
-	const int button_font_size = 20;
+	const float button_font_size = menu->font_size * 0.7f;
+//	const int button_font_size = 20;
 	Rectangle button_rect;
 	button_rect.width  = 300;
 	button_rect.height = button_font_size * 2;
-	button_rect.x = center_x - (button_rect.width / 2);
-	starting_y += 100;
+	button_rect.x = screen_center.x - (button_rect.width / 2);
+	
+	pos.y += 100;
 
 	for (int i = 0; i < 4; ++i) {
 		int button_gap = (60 * (i + 1));
-		button_rect.y = starting_y + button_gap;
+		button_rect.y = pos.y + button_gap;
 
-		int current_button_text_width = MeasureText(button_text[i], button_font_size);
-		int button_text_x = center_x - (current_button_text_width / 2);
-		int button_text_y = button_rect.y + 10;
+		// int button_text_x = screen_center.x - (current_button_text_width / 2);
+		// int button_text_y = button_rect.y + 10;
+		Vector2 current_button_text_dim = MeasureTextEx(*menu->font, button_text[i], button_font_size, spacing);
+		Vector2 button_text_pos = {screen_center.x - (current_button_text_dim.x * 0.5f), button_rect.y + 10};
 
 		DrawRectangleRec(button_rect, WHITE);
 		if (menu->current_main_item == i) {
@@ -197,7 +203,9 @@ static void draw_paused_menu(Menu *menu) {
 
 			DrawRectangleLinesEx(outline_rect, 3.0f, YELLOW);                            
 		}
-		DrawText(button_text[i], button_text_x, button_text_y, button_font_size, BLACK);
+		
+		DrawTextEx(*menu->font, button_text[i], button_text_pos, button_font_size, spacing, BLACK);
+		// DrawText(button_text[i], button_text_x, button_text_y, button_font_size, BLACK);
 	}
 }
 
@@ -208,38 +216,25 @@ static void draw_settings_page(Menu *menu) {
 	const int game_width  = g_app->game_width;
 	const int game_height = g_app->game_height;
 
-	
+	const Vector2 screen_center = get_screen_center();
+	const float spacing   = 0;
 
-
-
-	const char *title   = "SETTINGS";
-	const int font_size = 40;
-	int text_width      = MeasureText(title, font_size);
-	int center_x        = (int)(game_width  / 2); 
-	int starting_y      = (int)(game_height * 0.2f);
-	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);	
-
-	// Each of these have their own buffers since we want to modify the string contents based on the
-	// status of that setting.
-	char display[24];
-	char resolution[24];
-	char save[8];
-	char exit[8];
-
-	// @TODO...
+	const char *title       = "SETTINGS";
+	const s32   title_size  = menu->font_size * 1.5f;
+	const Vector2 title_dim = MeasureTextEx(*menu->font, title, title_size, spacing);
+	Vector2 title_pos = {screen_center.x - (title_dim.x * 0.5f), g_app->game_height * 0.2f};
+	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, WHITE);	
 }
 
 static void draw_controls_page(Menu *menu) {
-	const int game_width  = g_app->game_width;
-	const int game_height = g_app->game_height;
-
-	const char *title   = "CONTROLS";
-	const int font_size = 40;
-	int text_width      = MeasureText(title, font_size);
-	int center_x        = (int)(game_width  / 2); 
-	int starting_y      = (int)(game_height * 0.2f);
+	const float spacing = 0;
+	const Vector2 screen_center = get_screen_center();
 	
-	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
+	const char   *title      = "CONTROLS";
+	const s32     title_size = menu->font_size * 1.5f;
+	const Vector2 title_dim  = MeasureTextEx(*menu->font, title, title_size, spacing);
+	Vector2 title_pos = {screen_center.x - (title_dim.x * 0.5f), g_app->game_height * 0.2f};
+	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, WHITE);	
 }
 
 void init_menu(Menu *menu) {

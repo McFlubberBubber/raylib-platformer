@@ -44,6 +44,7 @@ static void load_all_fonts(AssetManager *asset_manager, const char *base) {
 
 	snprintf(full_path, sizeof(full_path), "%s%s", base, consolas);
 	asset_manager->fonts[FONT_MENU] = LoadFontEx(full_path, 128, NULL, 0);
+	
 #endif
 
 }

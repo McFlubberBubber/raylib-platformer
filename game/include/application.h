@@ -70,8 +70,15 @@ inline Arena *get_prev_arena_frame() {
 inline Arena *get_permanent_arena() {
 	return &g_app->permanent_arena;
 }
+
 inline const char *get_data_path() {
 	return g_app->data_path;
+}
+
+inline Vector2 get_screen_center() {
+	Vector2 result = {};
+	result = {(float)(g_app->game_width * 0.5f), (float)(g_app->game_height * 0.5f)};
+	return result;
 }
 
 void flip_scratch_arenas(Application *app);

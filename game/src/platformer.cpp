@@ -169,7 +169,7 @@ static void draw_game_environment(Game *game) {
 }
 
 void init_game_session(GameSession *session) {
-	arena_init(&session->world_arena, megabytes(64));
+	arena_init(&session->world_arena, WORLD_ARENA_SIZE);
 
 	bool loaded = load_world(&session->world, &session->world_arena);
 	if (!loaded) {

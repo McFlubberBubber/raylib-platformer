@@ -27,6 +27,7 @@ enum VarType {
 	VAR_TYPE_S32,
 	VAR_TYPE_FLOAT32,
 	VAR_TYPE_BOOL,
+	VAR_TYPE_STRING,
 };
 
 struct VarBinding {
@@ -46,6 +47,7 @@ struct HotloadedVariables {
 	Dev     dev;
 
     Array<VarBinding> bindings;
+	Arena string_arena; // This is here to make sure we don't leak strings every reload.
 };
 
 void init_vars(HotloadedVariables *hv);

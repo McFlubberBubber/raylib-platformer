@@ -4,11 +4,14 @@
 #include "raylib.h"
 #include "commands.h"
 #include "general.h"
+#include "constants.h"
 
+/* Moved to constants.h
 const u32 CONSOLE_INPUT_SIZE  = 512;
 const u32 CONSOLE_MAX_LOGS    = 256;
 const u32 CONSOLE_MAX_HISTORY = 64;
 const u32 CONSOLE_ARENA_SIZE = kilobytes(128);
+*/
 
 // Forward declarations.
 struct Console;

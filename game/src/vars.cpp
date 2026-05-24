@@ -60,10 +60,18 @@ static bool parse_bool(String string, bool *result) {
 	}
 	return true;
 }
+
+static bool parse_string(String string, String *result, Arena *arena) {
+	if (string_is_empty(string)) return false;
+	
+	*result = string_copy(arena, string);
+	return true;
+}
    
 void init_vars(HotloadedVariables *hv) {
 	hotloaded_vars = hv;
-	
+	arena_init(&hv->string_arena, VARS_STRING_ARENA_SIZE);
+
 	Arena *arena = get_permanent_arena();
     array_init(&hv->bindings, arena, MAX_VAR_BINDINGS);
 
@@ -85,6 +93,8 @@ void init_vars(HotloadedVariables *hv) {
 }
 
 void reload_vars(HotloadedVariables* hv) {
+	arena_reset(&hv->string_arena);
+
 	FILE *file = fopen(hv->path.data, "r");
 	if (!file) {
 		fprintf(stderr, "[INIT_VARS]: ERROR :: Could not load file from path: %s\n", hv->path.data);
@@ -181,6 +191,16 @@ void reload_vars(HotloadedVariables* hv) {
 					fprintf(stderr, "WARNING :: Could not parse bool for '%s' at line %d.\n", var.data, line_number);
 				}
             } break;
+
+            case VAR_TYPE_STRING: {
+                String parsed;
+                if (parse_string(value, &parsed, &hv->string_arena)) {
+					*(String *)it->target = parsed;
+				} else {
+					fprintf(stderr, "WARNING :: Could not parse string for '%s' at line %d.\n", var.data, line_number);
+				}
+            } break;
+
 
             } break;
         }

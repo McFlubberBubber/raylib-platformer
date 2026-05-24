@@ -15,13 +15,16 @@
 #include "raylib.h"
 
 constexpr u32 DESIRED_FPS = 144;
-constexpr u32 SCRATCH_ARENA_SIZE = megabytes(1);
 
 // @TODO: Make this permanent arena include the console + world arena in the future. This is
 // currently here only for hotloaded_vars bindings.
-constexpr u32 PERMANENT_ARENA_SIZE = megabytes(2);
-constexpr u32 MAX_VAR_BINDINGS     = 64;
+constexpr u32 PERMANENT_ARENA_SIZE   = megabytes(2);
+constexpr u32 SCRATCH_ARENA_SIZE 	 = megabytes(1);
+constexpr u32 VARS_STRING_ARENA_SIZE = kilobytes(128);
+constexpr u32 WORLD_ARENA_SIZE       = megabytes(64);
+constexpr u32 CONSOLE_ARENA_SIZE     = kilobytes(128);
 
+constexpr u32 MAX_VAR_BINDINGS     = 64;
 constexpr u32 VARS_LINE_BUFFER_SIZE = 512;
 
 constexpr u32 TILE_SIZE = 32;
@@ -41,6 +44,11 @@ constexpr u32 DEFAULT_WINDOW_SCALE = 1;
 constexpr s32 DEFAULT_FONT_SIZE = 16.0f;
 // constexpr s32 CONSOLE_FONT_SIZE = 24.0f; // Moved to vars.
 constexpr s32 CONSOLE_INPUT_FONT_SIZE = 32.0f; 
+
+constexpr u32 CONSOLE_INPUT_SIZE  = 512;
+constexpr u32 CONSOLE_MAX_LOGS    = 256;
+constexpr u32 CONSOLE_MAX_HISTORY = 64;
+
 
 constexpr float EDITOR_PAN_SPEED = 5.0f;
 constexpr float EDITOR_FAST_PAN_SPEED = 7.5f;

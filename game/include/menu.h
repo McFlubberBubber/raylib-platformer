@@ -1,6 +1,8 @@
 #ifndef MENU_H
 #define MENU_H
 
+#include "raylib.h"
+
 struct Game;
 
 enum MenuPages {
@@ -39,13 +41,17 @@ enum ControlsPageItems {
 };
 
 struct Menu {
-	MenuPages current_page = PAGE_MAIN;
+	Font *font; // @Placeholder, we don't have a good 'game' font yet.
+	float font_size;
+
+	MenuPages current_page;
 	
-	MainPageItems 	  current_main_item     = MAIN_START;
-	SettingsPageItems current_settings_item = SETTINGS_FULLSCREEN;
-	ControlsPageItems current_controls_item = CONTROLS_RETURN;
+	MainPageItems 	  current_main_item;
+	SettingsPageItems current_settings_item;
+	ControlsPageItems current_controls_item;
 };
 
+void init_menu(Menu *menu);
 void draw_opening_menu(Menu *menu);
 void draw_in_game_menu(Menu *menu);
 

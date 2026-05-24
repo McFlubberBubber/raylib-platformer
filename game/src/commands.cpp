@@ -176,7 +176,7 @@ static void do_add(ParseResult *result) {
 	int num2 = atoi(second);
 	int total = num1 + num2;
 
-	strbuild_fmt(scratch, &sb, "%d", total);
+	strbuild_format(scratch, &sb, "%d", total);
 	String output = strbuild_terminate(scratch, &sb);
 	strbuild_reset(&sb);
 	

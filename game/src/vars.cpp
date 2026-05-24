@@ -198,11 +198,10 @@ void reload_vars(HotloadedVariables* hv) {
 void update_vars(HotloadedVariables *hv) {
 	FileTimestamp current_timestamp = platform_get_file_timestamp(hv->path.data);
 	if (current_timestamp != hv->last_modified) {
-
 		Arena *scratch = get_current_arena_frame();
 		String message = string_format(scratch, "[Hotloader] :: File modified at path " string_fmt, string_arg(hv->path));
 		push_log(message, CONSOLE_LOG_INFO);
-
+		
 		hv->last_modified = current_timestamp;
 		reload_vars(hv);
 	}

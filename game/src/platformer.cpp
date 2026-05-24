@@ -190,6 +190,7 @@ void init_game_session(GameSession *session) {
 
 void init_game(Game *game) {
 	init_console(&game->console);
+	init_menu(&game->menu);
 	init_game_session(&game->session);
 }
 

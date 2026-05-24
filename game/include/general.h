@@ -179,7 +179,7 @@ struct StringBuilder {
 void   strbuild_append_string(Arena *arena, StringBuilder *sb, String s);
 void   strbuild_append_cstring(Arena *arena, StringBuilder *sb, const char *cstr);
 void   strbuild_append_char(Arena *arena, StringBuilder *sb, char c);
-void   strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...);
+void   strbuild_format(Arena *arena, StringBuilder *sb, const char *fmt, ...);
 String strbuild_terminate(Arena *arena, StringBuilder *sb);
 void   strbuild_reset(StringBuilder *sb);
 

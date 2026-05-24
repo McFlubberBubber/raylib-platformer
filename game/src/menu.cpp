@@ -95,57 +95,66 @@ static void do_controls_page_activations(Menu *menu) {
 }
 
 static void draw_opening_main_page(Menu *menu) {
-	// @TODO: Find a custom font that we can use so that we don't need to rely on raylib's
-	// default font.
-	// Application *app = Application::instance;
-	const int game_width  = g_app->game_width;
-	const int game_height = g_app->game_height;
+	const s32 game_width  = g_app->game_width;
+	const s32 game_height = g_app->game_height;
+	const s32 center_x = (s32)(game_width  * 0.5f);
+	const s32 center_y = (s32)(game_height * 0.5f);
+
+	const float spacing = 0;
 
 	// Drawing the main title of the game (still in placeholder).
-	const char *title = "PLACEHOLDER NAME";
-	const int title_font_size = 64;
-	int text_width = MeasureText(title, title_font_size);
-	int center_x = game_width  / 2;
-	int center_y = game_height / 2;
-	int x = center_x - (text_width / 2);
-	int y = center_y * 0.3f; 
-	DrawText(title, x, y, title_font_size, RAYWHITE);
+	const char   *title      = "PLACEHOLDER NAME";
+	const s32     title_size = menu->font_size * 2;
+	const Vector2 title_dim  = MeasureTextEx(*menu->font, title, title_size, spacing);
+
+	Vector2 title_pos = {center_x - (title_dim.x * 0.5f), center_y * 0.3f};
+	Color color = RAYWHITE;
+	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, color);
 
 	// Drawing main menu options.
 	const char *button_text[] = { "START", "SETTINGS", "CONTROLS", "QUIT" };
-	const int menu_font_size = 32;
+	const Color button_color  = WHITE;
 	Rectangle button_rect;
 	button_rect.width  = 400;
 	button_rect.height = 50;
-	button_rect.x = center_x - (button_rect.width / 2);
+	button_rect.x = center_x - (button_rect.width * 0.5f);
+
+	const Color text_color = BLACK;
 
 	for (int i = 0; i < 4; ++i) {
-		int button_gap = (100 * (i + 1));
-		button_rect.y = y + button_gap;
+		s32 button_gap = (100 * (i + 1));
+		button_rect.y = title_pos.y + button_gap;
 
+/*
 		int current_button_text_width = MeasureText(button_text[i], menu_font_size);
-		int button_text_x = center_x - (current_button_text_width / 2);
-		int button_text_y = button_rect.y + 10;
+		s32 button_text_x = center_x - (current_button_text_width / 2);
+		s32 button_text_y = button_rect.y + 10;
+*/
 
-		DrawRectangleRec(button_rect, WHITE);
+		Vector2 current_button_text_dim = MeasureTextEx(*menu->font, button_text[i], menu->font_size, spacing);
+		Vector2 button_text_pos = {center_x - (current_button_text_dim.x * 0.5f), button_rect.y + 10};
+
+		DrawRectangleRec(button_rect, button_color);
 		if (menu->current_main_item == i) {
-			const int outline_rect_padding = 5;
+			const s32 outline_rect_padding = 5;
 			Rectangle outline_rect;
 			outline_rect.x	    = button_rect.x - outline_rect_padding;
 			outline_rect.y 		= button_rect.y - outline_rect_padding;
 			outline_rect.width  = button_rect.width  + (outline_rect_padding * 2);
 			outline_rect.height = button_rect.height + (outline_rect_padding * 2);
-
 			DrawRectangleLinesEx(outline_rect, 3.0f, YELLOW);                            
 		}
-		DrawText(button_text[i], button_text_x, button_text_y, menu_font_size, BLACK);
+
+		DrawTextEx(*menu->font, button_text[i], button_text_pos, menu->font_size, spacing, text_color);
+		// DrawText(button_text[i], button_text_x, button_text_y, menu_font_size, BLACK);
 	}
 
-	const char *credits			 = "Created by McFlubberBubber";
-	const int credits_text_width = MeasureText(credits, menu_font_size);
-	const int credits_text_x 	 = center_x - (credits_text_width / 2);
-	const int credits_text_y     = game_height - menu_font_size;
-	DrawText(credits, credits_text_x, credits_text_y, menu_font_size, GRAY);
+	const char   *credits = "Created by McFlubberBubber";
+	const Vector2 credits_text_dim = MeasureTextEx(*menu->font, credits, menu->font_size, spacing);
+	const Vector2 credits_pos = {center_x - (credits_text_dim.x * 0.5f), game_height - menu->font_size};
+	const Color   credits_color = GRAY;
+	
+	DrawTextEx(*menu->font, credits, credits_pos, menu->font_size, spacing, credits_color);
 }
 
 static void draw_paused_menu(Menu *menu) {
@@ -196,9 +205,12 @@ static void draw_paused_menu(Menu *menu) {
 // opening menu or paused versions (handled by 'state' member in the game struct).
 static void draw_settings_page(Menu *menu) {
 	// Getting access to the application since we will be changing it's members and stuff.
-	// Application *app = Application::instance;
 	const int game_width  = g_app->game_width;
 	const int game_height = g_app->game_height;
+
+	
+
+
 
 	const char *title   = "SETTINGS";
 	const int font_size = 40;
@@ -228,6 +240,18 @@ static void draw_controls_page(Menu *menu) {
 	int starting_y      = (int)(game_height * 0.2f);
 	
 	DrawText(title, (center_x - (text_width / 2)), starting_y, font_size, WHITE);
+}
+
+void init_menu(Menu *menu) {
+	Font *the_font = get_font(FONT_MENU);
+	menu->font = the_font;
+	menu->font_size = 32;
+	
+	menu->current_page = PAGE_MAIN;
+	
+	menu->current_main_item 	= MAIN_START;
+	menu->current_settings_item = SETTINGS_FULLSCREEN;
+	menu->current_controls_item = CONTROLS_RETURN;
 }
 
 void draw_opening_menu(Menu *menu) {

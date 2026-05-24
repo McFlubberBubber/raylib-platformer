@@ -21,8 +21,8 @@ enum SoundID : unsigned short {
 
 enum FontID : unsigned short {
 	FONT_CONSOLE = 0,
-	// FONT_CONSOLE_INPUT,
-			
+	FONT_MENU,
+				
 	FONT_COUNT,
 };
 

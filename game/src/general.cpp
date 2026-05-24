@@ -282,7 +282,7 @@ void strbuild_append_char(Arena *arena, StringBuilder *sb, char c) {
 	strbuild_append(arena, sb, &temp, 1);
 }
 
-void strbuild_fmt(Arena *arena, StringBuilder *sb, const char *fmt, ...) {
+void strbuild_format(Arena *arena, StringBuilder *sb, const char *fmt, ...) {
 	assert(arena && sb && fmt);
 	va_list args;
 

@@ -4,6 +4,13 @@
 #include "application.h"
 #include "platformer.h"
 
+static Vector2 center_string_within_screen(const Font *font, String str, float font_size, float spacing=0) {
+	assert(font);
+	Vector2 string_dimension = measure_text_ex_with_string(font, str, font_size, spacing);
+	Vector2 result = {get_screen_center().x - (string_dimension.x * 0.5f), 0};
+	return result;
+}
+
 static void do_main_page_activations(Menu *menu) {
 	Game *game = &g_app->game;
 	switch (menu->current_main_item) {
@@ -13,6 +20,7 @@ static void do_main_page_activations(Menu *menu) {
 	}
 	case MAIN_SETTINGS: {
 		menu->current_page = PAGE_SETTINGS;
+		menu->current_settings_item = SETTINGS_DISPLAY;
 		break;
 	}
 	case MAIN_CONTROLS: {
@@ -38,7 +46,7 @@ static void do_main_page_activations(Menu *menu) {
 
 static void do_settings_page_activations(Menu *menu) {
 	switch(menu->current_settings_item) {
-	case SETTINGS_FULLSCREEN: {
+	case SETTINGS_DISPLAY: {
 		// Toggle between 3 options, pressing enter increments.
 		// - Windowed
 		// - Fullscreen
@@ -223,7 +231,62 @@ static void draw_settings_page(Menu *menu) {
 	const s32   title_size  = menu->font_size * 1.5f;
 	const Vector2 title_dim = MeasureTextEx(*menu->font, title, title_size, spacing);
 	Vector2 title_pos = {screen_center.x - (title_dim.x * 0.5f), g_app->game_height * 0.2f};
-	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, WHITE);	
+	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, WHITE);
+
+	const s32 heading_count = 2; // @Hardcode.
+	String headings[heading_count] = {
+		string_literal_create("Display"),
+		string_literal_create("Resolution")
+	};
+	
+	String items[heading_count] = {
+		string_literal_create("Windowed"),
+		string_literal_create("1280x720")
+	};
+
+	const s32 heading_padding = 10;
+	const float heading_x = g_app->game_width * 0.3f;
+	const float first_heading_y = title_pos.y + 64;
+	const float item_x = g_app->game_width * 0.6f;
+
+	for (s32 i = 0; i < heading_count; ++i) {
+		String heading = headings[i];
+		Vector2 heading_pos = {
+			heading_x,
+			(first_heading_y + (menu->font_size + heading_padding) * i)
+		};
+		draw_text_ex_with_string(menu->font, heading, heading_pos, menu->font_size, spacing, WHITE);
+
+		String item = items[i];
+		Vector2 item_pos = {item_x, heading_pos.y};
+		if (menu->current_settings_item == i) {
+			draw_text_ex_with_string(menu->font, item, item_pos, menu->font_size, spacing, YELLOW);
+		} else {
+			draw_text_ex_with_string(menu->font, item, item_pos, menu->font_size, spacing, LIGHTGRAY);
+		}
+
+
+	}
+
+	// @TODO: Make the highlighted item code better.
+	const float bottom_y = g_app->game_height * 0.8f; 
+	String save_str  = string_literal_create("Save changes");
+	Vector2 save_pos = center_string_within_screen(menu->font, save_str, menu->font_size);
+	save_pos.y = bottom_y;
+	if (menu->current_settings_item == SETTINGS_SAVE) {
+		draw_text_ex_with_string(menu->font, save_str, save_pos, menu->font_size, spacing, YELLOW);
+	} else {
+		draw_text_ex_with_string(menu->font, save_str, save_pos, menu->font_size, spacing, LIGHTGRAY);
+	}
+
+	String return_str = string_literal_create("Return to menu");
+	Vector2 return_pos = center_string_within_screen(menu->font, return_str, menu->font_size);
+	return_pos.y = bottom_y + menu->font_size + 10;
+	if (menu->current_settings_item == SETTINGS_RETURN) {
+		draw_text_ex_with_string(menu->font, return_str, return_pos, menu->font_size, spacing, YELLOW);
+	} else {
+		draw_text_ex_with_string(menu->font, return_str, return_pos, menu->font_size, spacing, LIGHTGRAY);
+	}
 }
 
 static void draw_controls_page(Menu *menu) {
@@ -245,7 +308,7 @@ void init_menu(Menu *menu) {
 	menu->current_page = PAGE_MAIN;
 	
 	menu->current_main_item 	= MAIN_START;
-	menu->current_settings_item = SETTINGS_FULLSCREEN;
+	menu->current_settings_item = SETTINGS_DISPLAY;
 	menu->current_controls_item = CONTROLS_RETURN;
 }
 

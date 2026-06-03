@@ -25,7 +25,7 @@ enum MainPageItems {
 };
 
 enum SettingsPageItems {
-	SETTINGS_FULLSCREEN = 0,
+	SETTINGS_DISPLAY = 0,
 	SETTINGS_RESOLUTION,
 
 	SETTINGS_SAVE,

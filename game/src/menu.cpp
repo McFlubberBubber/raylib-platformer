@@ -20,7 +20,7 @@ static void do_main_page_activations(Menu *menu) {
 	}
 	case MAIN_SETTINGS: {
 		menu->current_page = PAGE_SETTINGS;
-		menu->current_settings_item = SETTINGS_DISPLAY;
+		menu->settings.current_item = SETTINGS_DISPLAY;
 		break;
 	}
 	case MAIN_CONTROLS: {
@@ -45,7 +45,7 @@ static void do_main_page_activations(Menu *menu) {
 }
 
 static void do_settings_page_activations(Menu *menu) {
-	switch(menu->current_settings_item) {
+	switch(menu->settings.current_item) {
 	case SETTINGS_DISPLAY: {
 		// Toggle between 3 options, pressing enter increments.
 		// - Windowed
@@ -220,6 +220,8 @@ static void draw_paused_menu(Menu *menu) {
 // @NOTE: The settings + controls pages are drawn the exact same way whether the menu is in the
 // opening menu or paused versions (handled by 'state' member in the game struct).
 static void draw_settings_page(Menu *menu) {
+	SettingsPage *settings = &menu->settings;
+
 	// Getting access to the application since we will be changing it's members and stuff.
 	const int game_width  = g_app->game_width;
 	const int game_height = g_app->game_height;
@@ -229,43 +231,37 @@ static void draw_settings_page(Menu *menu) {
 
 	const char *title       = "SETTINGS";
 	const s32   title_size  = menu->font_size * 1.5f;
-	const Vector2 title_dim = MeasureTextEx(*menu->font, title, title_size, spacing);
+	const Vector2 title_dim = MeasureTextEx(*menu->font, settings->title, title_size, spacing);
 	Vector2 title_pos = {screen_center.x - (title_dim.x * 0.5f), g_app->game_height * 0.2f};
-	DrawTextEx(*menu->font, title, title_pos, title_size, spacing, WHITE);
+	DrawTextEx(*menu->font, settings->title, title_pos, title_size, spacing, WHITE);
 
-	const s32 heading_count = 2; // @Hardcode.
-	String headings[heading_count] = {
-		string_literal_create("Display"),
-		string_literal_create("Resolution")
-	};
-	
-	String items[heading_count] = {
-		string_literal_create("Windowed"),
-		string_literal_create("1280x720")
-	};
-
+	const s32 heading_count = 2; // @Hardcode, should this be a global?
 	const s32 heading_padding = 10;
 	const float heading_x = g_app->game_width * 0.3f;
 	const float first_heading_y = title_pos.y + 64;
 	const float item_x = g_app->game_width * 0.6f;
 
 	for (s32 i = 0; i < heading_count; ++i) {
-		String heading = headings[i];
+		SettingsItem *it = &settings->items[i];
+//		String heading = headings[i];
 		Vector2 heading_pos = {
 			heading_x,
 			(first_heading_y + (menu->font_size + heading_padding) * i)
 		};
-		draw_text_ex_with_string(menu->font, heading, heading_pos, menu->font_size, spacing, WHITE);
-
-		String item = items[i];
-		Vector2 item_pos = {item_x, heading_pos.y};
-		if (menu->current_settings_item == i) {
-			draw_text_ex_with_string(menu->font, item, item_pos, menu->font_size, spacing, YELLOW);
+		DrawTextEx(*menu->font, it->heading, heading_pos, menu->font_size, spacing, WHITE);
+//		draw_text_ex_with_string(menu->font, heading, heading_pos, menu->font_size, spacing, WHITE);
+		
+//		String item = items[i];
+//		Vector2 item_dim = measure_text_ex_with_string(menu->font, item, menu->font_size, spacing);
+		Vector2 item_dim = MeasureTextEx(*menu->font, it->value, menu->font_size, spacing);
+		Vector2 item_pos = {item_x - (item_dim.x * 0.5f), heading_pos.y};
+		if (menu->settings.current_item == i) {
+//			draw_text_ex_with_string(menu->font, item, item_pos, menu->font_size, spacing, YELLOW);
+			DrawTextEx(*menu->font, it->value, item_pos, menu->font_size, spacing, YELLOW);
 		} else {
-			draw_text_ex_with_string(menu->font, item, item_pos, menu->font_size, spacing, LIGHTGRAY);
+//			draw_text_ex_with_string(menu->font, item, item_pos, menu->font_size, spacing, LIGHTGRAY);
+			DrawTextEx(*menu->font, it->value, item_pos, menu->font_size, spacing, LIGHTGRAY);
 		}
-
-
 	}
 
 	// @TODO: Make the highlighted item code better.
@@ -273,7 +269,7 @@ static void draw_settings_page(Menu *menu) {
 	String save_str  = string_literal_create("Save changes");
 	Vector2 save_pos = center_string_within_screen(menu->font, save_str, menu->font_size);
 	save_pos.y = bottom_y;
-	if (menu->current_settings_item == SETTINGS_SAVE) {
+	if (menu->settings.current_item == SETTINGS_SAVE) {
 		draw_text_ex_with_string(menu->font, save_str, save_pos, menu->font_size, spacing, YELLOW);
 	} else {
 		draw_text_ex_with_string(menu->font, save_str, save_pos, menu->font_size, spacing, LIGHTGRAY);
@@ -282,7 +278,7 @@ static void draw_settings_page(Menu *menu) {
 	String return_str = string_literal_create("Return to menu");
 	Vector2 return_pos = center_string_within_screen(menu->font, return_str, menu->font_size);
 	return_pos.y = bottom_y + menu->font_size + 10;
-	if (menu->current_settings_item == SETTINGS_RETURN) {
+	if (menu->settings.current_item == SETTINGS_RETURN) {
 		draw_text_ex_with_string(menu->font, return_str, return_pos, menu->font_size, spacing, YELLOW);
 	} else {
 		draw_text_ex_with_string(menu->font, return_str, return_pos, menu->font_size, spacing, LIGHTGRAY);
@@ -301,14 +297,33 @@ static void draw_controls_page(Menu *menu) {
 }
 
 void init_menu(Menu *menu) {
+	Arena *arena = get_permanent_arena();
 	Font *the_font = get_font(FONT_MENU);
 	menu->font = the_font;
 	menu->font_size = 32;
 	
 	menu->current_page = PAGE_MAIN;
+	menu->current_main_item = MAIN_START;
 	
-	menu->current_main_item 	= MAIN_START;
-	menu->current_settings_item = SETTINGS_DISPLAY;
+	// Settings initialization.
+	const char *headings[] = {
+		"Display",
+		"Resolution"
+	};
+
+	const char *values[] = {
+		"Windowed",
+		"1280x720"
+	};
+
+	menu->settings.current_item = SETTINGS_DISPLAY;
+	for (int i = 0; i < 2; ++i) {
+		SettingsItem *it = &menu->settings.items[i];
+		snprintf(it->heading, sizeof(it->heading), headings[i]);
+		snprintf(it->value, sizeof(it->value), values[i]);
+	}
+
+	// Controls initialization.
 	menu->current_controls_item = CONTROLS_RETURN;
 }
 
@@ -379,9 +394,9 @@ void navigate_menu_item(Menu *menu, bool go_forward) {
 			break;
 		}
 		case PAGE_SETTINGS: {
-			current_item = static_cast<int>(menu->current_settings_item);
+			current_item = static_cast<int>(menu->settings.current_item);
 			total_items  = static_cast<int>(SETTINGS_COUNT);
-			menu->current_settings_item = static_cast<SettingsPageItems>((current_item + 1) % total_items);
+			menu->settings.current_item = static_cast<SettingsPageItems>((current_item + 1) % total_items);
 			break;
 		}
 		case PAGE_CONTROLS: {
@@ -405,10 +420,10 @@ void navigate_menu_item(Menu *menu, bool go_forward) {
 			break;
 		}
 		case PAGE_SETTINGS: {
-			current_item = static_cast<int>(menu->current_settings_item);
+			current_item = static_cast<int>(menu->settings.current_item);
 			total_items  = static_cast<int>(MAIN_COUNT);
 			prev_item    = (current_item - 1 + total_items) % total_items;
-			menu->current_settings_item = static_cast<SettingsPageItems>(prev_item);
+			menu->settings.current_item = static_cast<SettingsPageItems>(prev_item);
 			break;
 		}
 		case PAGE_CONTROLS: {

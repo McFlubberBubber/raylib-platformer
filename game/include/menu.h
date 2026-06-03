@@ -2,6 +2,7 @@
 #define MENU_H
 
 #include "raylib.h"
+#include "general.h"
 
 struct Game;
 
@@ -40,16 +41,34 @@ enum ControlsPageItems {
 	CONTROLS_COUNT
 };
 
+struct SettingsItem {
+	char heading[64];
+	char value[64];
+	bool is_modified;
+};
+
+struct SettingsPage {
+	const char *title = "SETTINGS";
+	SettingsPageItems current_item;
+	SettingsItem items[2]; // This excludes the save / return items.
+};
+
 struct Menu {
 	Font *font; // @Placeholder, we don't have a good 'game' font yet.
 	float font_size;
 
 	MenuPages current_page;
 	
-	MainPageItems 	  current_main_item;
-	SettingsPageItems current_settings_item;
+	MainPageItems current_main_item;
+
+	// Settings-related items.
+	// SettingsPageItems current_settings_item;
+	SettingsPage settings;
+
+	// Controls-related items.
 	ControlsPageItems current_controls_item;
 };
+
 
 void init_menu(Menu *menu);
 void draw_opening_menu(Menu *menu);

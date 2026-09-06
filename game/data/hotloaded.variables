@@ -1,7 +1,7 @@
 # This is a comment!
 
 :/Display
-fullscreen = true		
+mode = windowed
 vsync = true
 
 

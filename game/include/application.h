@@ -29,7 +29,7 @@ struct ScratchArenas {
 struct Application {
 	const char *title = "Platformer";
 	const char *data_path;
-	DisplayMode display_mode = WINDOWED_MODE;
+	DisplayMode display_mode;
 
 	// Related to the actual window and monitor specs.
 	int monitor, monitor_width, monitor_height;

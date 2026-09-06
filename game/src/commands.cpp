@@ -232,8 +232,7 @@ void run_command(String cmd, ParseResult *result) {
 	}
 
 	if (!found) {
-		#if 0
-		
+#if 0
 		StringBuilder sb = {};
 		Arena *scratch = get_current_arena_frame();
 		if (result->count == 1) {
@@ -248,7 +247,7 @@ void run_command(String cmd, ParseResult *result) {
 		String message = strbuild_terminate(scratch, &sb);
 		push_log(string_to_cstr(message), CONSOLE_LOG_ERROR);
 		
-		#else
+#else
 		
 		StringBuilder sb = {};
 		Arena *scratch = get_current_arena_frame();
@@ -257,7 +256,7 @@ void run_command(String cmd, ParseResult *result) {
 		const char *message = string_to_cstr(strbuild_terminate(scratch, &sb));
 		push_log(message, CONSOLE_LOG_ERROR);
 		
-		#endif
+#endif
 	}
 }
 

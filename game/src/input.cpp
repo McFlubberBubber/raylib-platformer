@@ -22,6 +22,11 @@ static void handle_global_inputs(Application *app) {
 	if (IsKeyPressed(KEY_HOME)) {
 		push_command_simple(game, CMD_TOGGLE_EDITOR_MODE);
 	}
+
+	// @Placeholder, fullscreen testing...
+	if (IsKeyPressed(KEY_F4)) {
+		ToggleFullscreen();
+	}
 }
 
 static void poll_console_inputs(Game *game) {

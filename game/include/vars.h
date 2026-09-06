@@ -8,7 +8,7 @@ struct HotloadedVariables;
 extern HotloadedVariables *hotloaded_vars;
 
 struct Display {
-	bool fullscreen;
+	String mode;
 	bool vsync;
 };
 

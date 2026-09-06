@@ -43,9 +43,19 @@ void init_app(Application *app) {
 #endif
 
 	init_vars(&app->hotloaded_variables);
-
+/*
+	if (string_comp(hotloaded_vars->display.mode, string_literal_create("windowed"))) {
+		app->display_mode = WINDOWED_MODE;
+	} else if (string_comp(hotloaded_vars->display.mode, string_literal_create("fullscreen"))) {
+		app->display_mode = FULLSCREEN_MODE;
+	} else if (string_comp(hotloaded_vars->display.mode, string_literal_create("borderless"))) {
+		app->display_mode = BORDERLESS_WINDOWED_MODE;
+	}
+*/
+	
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
 	InitWindow(app->width, app->height, app->title);
+
 	app->monitor = GetCurrentMonitor();
 	app->monitor_width  = GetMonitorWidth(app->monitor);
 	app->monitor_height = GetMonitorHeight(app->monitor);
@@ -77,8 +87,8 @@ void init_app(Application *app) {
 	SetTargetFPS(app->target_fps);
 	SetExitKey(KEY_END);
 
-	HideCursor();
-	DisableCursor();
+//	HideCursor();
+//	DisableCursor();
 
 	app->should_close = false;
 
@@ -101,7 +111,7 @@ void update_app(Application *app) {
 		app->height = GetRenderHeight();
 		calculate_game_viewport(app);
 	}
-
+	
 	update_vars(&app->hotloaded_variables);
 	update_game(&app->game, &app->input, app->dt);
 }

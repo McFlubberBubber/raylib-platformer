@@ -134,12 +134,6 @@ static void draw_opening_main_page(Menu *menu) {
 		s32 button_gap = (100 * (i + 1));
 		button_rect.y = title_pos.y + button_gap;
 
-/*
-		int current_button_text_width = MeasureText(button_text[i], menu_font_size);
-		s32 button_text_x = center_x - (current_button_text_width / 2);
-		s32 button_text_y = button_rect.y + 10;
-*/
-
 		Vector2 current_button_text_dim = MeasureTextEx(*menu->font, button_text[i], menu->font_size, spacing);
 		Vector2 button_text_pos = {screen_center.x - (current_button_text_dim.x * 0.5f), button_rect.y + 10};
 
@@ -311,6 +305,8 @@ void init_menu(Menu *menu) {
 		"Resolution"
 	};
 
+	// @TODO: We need to fetch these values from a config of some sorts rather than hardcoding
+	// the strings directly in the initialization procedure.
 	const char *values[] = {
 		"Windowed",
 		"1280x720"
@@ -444,7 +440,7 @@ void navigate_menu_item(Menu *menu, bool go_forward) {
 // @TODO: We don't have any things to cycle, yet.
 void cycle_menu_item(Menu *menu, bool go_forward) {
 	if (go_forward) {
-
+		
 	} else {
 
 	}

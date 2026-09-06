@@ -75,8 +75,8 @@ void init_vars(HotloadedVariables *hv) {
 	Arena *arena = get_permanent_arena();
     array_init(&hv->bindings, arena, MAX_VAR_BINDINGS);
 
-	Attach("Display", "fullscreen", hv->display.fullscreen, VAR_TYPE_BOOL);
-	Attach("Display", "vsync",      hv->display.vsync,      VAR_TYPE_BOOL);
+	Attach("Display", "mode",  hv->display.mode,  VAR_TYPE_STRING);
+	Attach("Display", "vsync", hv->display.vsync, VAR_TYPE_BOOL);
 
 	Attach("Audio", "master_volume", hv->audio.master_volume, VAR_TYPE_FLOAT32);
 
@@ -90,6 +90,7 @@ void init_vars(HotloadedVariables *hv) {
 	hv->path = strbuild_terminate(arena, &sb);
 
     reload_vars(hv);
+
 }
 
 void reload_vars(HotloadedVariables* hv) {
@@ -213,6 +214,7 @@ void reload_vars(HotloadedVariables* hv) {
 	}
 
 	fclose(file);
+
 }
 
 void update_vars(HotloadedVariables *hv) {
@@ -224,5 +226,17 @@ void update_vars(HotloadedVariables *hv) {
 		
 		hv->last_modified = current_timestamp;
 		reload_vars(hv);
+
+		// We do a parse only on certain strings because they need to be a specific value.
+		bool display_status = false;
+		if (string_comp(hv->display.mode, string_literal_create("windowed"))) {
+			display_status = true;
+		} else if (string_comp(hv->display.mode, string_literal_create("fullscreen"))) {
+			display_status = true;
+		} else if (string_comp(hv->display.mode, string_literal_create("borderless"))) {
+			display_status = true;
+		}
+		assert(display_status == true);
+				
 	}
 }

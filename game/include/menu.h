@@ -35,6 +35,14 @@ enum SettingsPageItems {
 	SETTINGS_COUNT
 };
 
+enum SetingsDisplayOptions {
+	SETTINGS_DISPLAY_WINDOWED = 0,
+	SETTINGS_DISPLAY_FULLSCREEN,
+	SETTINGS_DISPLAY_BORDERLESS_WINDOWED,
+
+	SETTINGS_DISPLAY_COUNT
+};
+
 enum ControlsPageItems {
 	CONTROLS_RETURN,
 
@@ -44,6 +52,11 @@ enum ControlsPageItems {
 struct SettingsItem {
 	char heading[64];
 	char value[64];
+	
+	// These get casted from the enum that relates to the item.
+	s32 current_value;
+	s32 previous_value;
+	
 	bool is_modified;
 };
 
